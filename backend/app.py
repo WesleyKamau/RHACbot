@@ -6,6 +6,8 @@ import json
 import uuid  # For generating unique message IDs
 import logging
 from config import Config
+import os
+from pathlib import Path
 from pymongo import MongoClient, errors as pymongo_errors
 
 logger = logging.getLogger(__name__)
@@ -48,15 +50,32 @@ def init_app():
         app.config['MONGODB_DB_NAME'] = app.config.get('MONGODB_DB', 'rhac_db')
     CORS(app)
 
-    # Load buildings data safely
+    # Load buildings data safely. Try multiple locations (app root, module dir, cwd)
     try:
-        with open("buildings.json", 'r', encoding='utf-8') as f:
+        tried = []
+        buildings_path = None
+        candidates = [
+            Path(app.root_path) / 'buildings.json',
+            Path(__file__).resolve().parent / 'buildings.json',
+            Path.cwd() / 'buildings.json',
+        ]
+        for p in candidates:
+            tried.append(str(p))
+            if p.exists():
+                buildings_path = p
+                break
+
+        if buildings_path is None:
+            raise FileNotFoundError(f"buildings.json not found. Tried: {', '.join(tried)}")
+
+        with buildings_path.open('r', encoding='utf-8') as f:
             buildings_data = json.load(f)
-    except FileNotFoundError:
-        logger.warning("buildings.json not found; using empty buildings list")
+        logger.info("Loaded buildings.json from %s", buildings_path)
+    except FileNotFoundError as e:
+        logger.warning("%s", e)
         buildings_data = []
     except json.JSONDecodeError as e:
-        logger.error("Failed to parse buildings.json: %s", e)
+        logger.error("Failed to parse buildings.json (%s): %s", buildings_path if 'buildings_path' in locals() else 'unknown', e)
         buildings_data = []
 
     # MongoDB setup with safe fallbacks
@@ -67,15 +86,26 @@ def init_app():
             client = MongoClient(app.config['MONGODB_URI'], serverSelectionTimeoutMS=5000)
             client.admin.command('ping')
             dbname = app.config.get('MONGODB_DB_NAME') or app.config.get('MONGODB_DB') or 'rhac_db'
+            logger.info("Connected to MongoDB: %s (env=%s)", dbname, app.config.get('APP_ENV'))
             db = client[dbname]
             chats_collection = db['chats']
-            logger.info("Connected to MongoDB: %s (env=%s)", dbname, app.config.get('APP_ENV'))
+            
         except pymongo_errors.PyMongoError:
             logger.exception("Failed to connect to MongoDB; falling back to in-memory storage")
             chats_collection = None
             _fallback_chats = []
     else:
         logger.warning("MONGODB_URI not set; using in-memory fallback storage for chats")
+
+    # Final summary of which storage is active and which DB name is configured.
+    effective_dbname = app.config.get('MONGODB_DB_NAME') or app.config.get('MONGODB_DB') or 'rhac_db'
+    if chats_collection is not None:
+        logger.info("Chat storage: MongoDB (database=%s, env=%s)", effective_dbname, app.config.get('APP_ENV'))
+        # Also print to stdout so it's obvious when running app directly
+        print(f"Using MongoDB database: {effective_dbname} (env={app.config.get('APP_ENV')})")
+    else:
+        logger.info("Chat storage: in-memory fallback (no MongoDB). Configured DB name would be: %s", effective_dbname)
+        print(f"Using in-memory chat storage (no MongoDB). Configured DB name would be: {effective_dbname}")
 
 
 # Endpoint to add a floor chat
@@ -86,7 +116,11 @@ def add_floor_chat():
     building_id = data.get('building_id')
     floor_number = data.get('floor_number')
 
-    if not (groupme_link and building_id and floor_number is not None):
+    # Log payload at INFO level for observability (avoid bare prints)
+    logger.info("add_floor_chat payload: %s", data)
+
+    # Validate required fields. Accept building_id == 0 (explicit None check).
+    if not groupme_link or building_id is None or floor_number is None:
         return jsonify({'error': 'Missing groupme_link, building_id, or floor_number'}), 400
 
     # Extract group_id and share_token from the GroupMe link
@@ -280,6 +314,33 @@ def join_group(group_id, share_token):
     params = {'token': token}
     try:
         response = requests.post(url, params=params, timeout=10)
+        # Log a concise, structured summary of the response for debugging.
+        try:
+            resp_text = response.text
+        except Exception:
+            resp_text = '<unreadable response body>'
+
+        # Try to decode JSON safely for richer logs
+        resp_json = None
+        try:
+            resp_json = response.json()
+        except ValueError:
+            # Not JSON; ignore
+            pass
+
+        # Always log a short summary so failures are visible in normal runs.
+        logger.info("join_group response: status=%s, reason=%s", response.status_code, getattr(response, 'reason', None))
+
+        # Only log headers/body details when the application is running in debug mode
+        # to avoid leaking potentially sensitive information in production logs.
+        is_debug = bool(app.debug or app.config.get('DEBUG') or os.getenv('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes', 'on'))
+        if is_debug:
+            logger.debug(
+                "join_group details: headers=%s, body_preview=%s",
+                dict(list(response.headers.items())[:5]),  # limited headers
+                (resp_json if resp_json is not None else (resp_text[:1000] if resp_text else '')),
+            )
+
         if response.status_code in (200, 201):
             logger.info("Successfully joined group %s", group_id)
             return True
