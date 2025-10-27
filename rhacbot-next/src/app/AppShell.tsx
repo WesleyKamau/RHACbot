@@ -13,25 +13,6 @@ export default function AppShell({ children }: Props) {
 
   const containerClass = stylishEnabled ? 'vanta-container' : 'non-stylish-container';
 
-  const pathname = usePathname();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!pathname) return;
-
-    // Allowlist of known app routes — extend if you add more pages
-    const allowed = new Set(["/", "/add-chat", "/send-message"]);
-
-    // Skip assets, next internals and api routes
-    if (pathname.startsWith('/_next') || pathname.startsWith('/api') || pathname.startsWith('/static') || pathname.includes('.')) return;
-
-    // If the path is not allowed and it's not already the not-found path, redirect to /404
-    if (!allowed.has(pathname) && pathname !== '/404') {
-      // Use replace so user doesn't accumulate invalid paths in history
-      router.replace('/404');
-    }
-  }, [pathname, router]);
-
   return (
     <div id="vanta-root" className={containerClass}>
       <BackButton />
