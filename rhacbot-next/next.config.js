@@ -26,15 +26,15 @@ module.exports = {
   turbopack: {
     root: path.join(__dirname, '..'),
   },
-  // Enable static export build. This allows `next export` to produce an `out/` folder
-  // which can be served as a static site (for GitHub Pages). If your site will be
-  // hosted under a repository subpath (e.g. https://<user>.github.io/<repo>), set
-  // NEXT_PUBLIC_BASE_PATH to the subpath (for example: `/RHACbot`) when building.
-  output: 'export',
-  trailingSlash: true,
-  // Optionally set basePath / assetPrefix from env so exported assets work on repo pages
-  // Set NEXT_PUBLIC_BASE_PATH=/my-repo to enable. If empty, no basePath is applied.
-  ...(process.env.NEXT_PUBLIC_BASE_PATH
-    ? { basePath: process.env.NEXT_PUBLIC_BASE_PATH, assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH }
-    : {}),
+  // // Enable static export build. This allows `next export` to produce an `out/` folder
+  // // which can be served as a static site (for GitHub Pages). If your site will be
+  // // hosted under a repository subpath (e.g. https://<user>.github.io/<repo>), set
+  // // NEXT_PUBLIC_BASE_PATH to the subpath (for example: `/RHACbot`) when building.
+  // output: 'export',
+  // trailingSlash: true,
+  // // Optionally set basePath / assetPrefix from env so exported assets work on repo pages
+  // // Set NEXT_PUBLIC_BASE_PATH=/my-repo to enable. If empty, no basePath is applied.
+  // ...(process.env.NEXT_PUBLIC_BASE_PATH
+  //   ? { basePath: process.env.NEXT_PUBLIC_BASE_PATH, assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH }
+  //   : {}),
 };
