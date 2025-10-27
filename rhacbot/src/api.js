@@ -4,6 +4,9 @@ import axios from 'axios';
 // Determine application environment. Prefer REACT_APP_ENV if provided so dev/prod
 // behavior can be controlled independently of build-time NODE_ENV.
 export const ENV = process.env.REACT_APP_ENV || process.env.NODE_ENV || 'development';
+if (ENV === 'development') {
+  console.log(ENV);
+}
 
 // Determine API base URL and optional prefix.
 // Priority:

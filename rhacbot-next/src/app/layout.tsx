@@ -1,0 +1,54 @@
+import type { Metadata } from "next";
+import Script from "next/script";
+import AntdCompat from "./AntdCompat";
+import VantaLoader from "./VantaLoader";
+import AppShell from "./AppShell";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "RHACbot Control Panel",
+  description: "Administer and monitor RHACbot operations and settings.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {/* External scripts: three.js and Vanta (fog). Loaded after hydration. */}
+        {/* Render the antd React 19 compatibility shim on the client. */}
+        <AntdCompat />
+        <Script
+          src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"
+          strategy="afterInteractive"
+        />
+        <Script
+          src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"
+          strategy="afterInteractive"
+        />
+        {/* Initialize Vanta on the client when enabled (checks NEXT_PUBLIC_STYLISH) */}
+        <VantaLoader />
+        {/* AppShell provides the vanta/non-stylish wrapper around all pages */}
+        <AppShell>
+          {children}
+        </AppShell>
+      </body>
+    </html>
+  );
+}
