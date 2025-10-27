@@ -4,6 +4,9 @@ import AntdCompat from "./AntdCompat";
 import VantaLoader from "./VantaLoader";
 import AppShell from "./AppShell";
 import { Geist, Geist_Mono } from "next/font/google";
+// Ensure Ant Design base styles are included on the server so they are
+// present at first paint and avoid a brief flash / delayed styling.
+import "antd/dist/reset.css";
 import "./globals.css";
 
 const geistSans = Geist({
