@@ -124,7 +124,7 @@ export default function SendMessagePage() {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
           <div className="card">
             {contextHolder}
-            <div style={{ maxWidth: 400, margin: '0 auto', padding: 20 }}>
+            <div className="card-inner" style={{ padding: 20 }}>
               <Title level={3} style={{ textAlign: 'center' }}>Executive Login</Title>
               <Form onFinish={handleLogin} autoComplete="off">
                 <Form.Item name="password" rules={[{ required: true, message: 'Please input your password' }]}>
@@ -151,27 +151,27 @@ export default function SendMessagePage() {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
           <div className="card">
             {contextHolder}
-            {sendSummary && (
-              <div style={{ marginBottom: 12 }}>
-                <Alert message={sendSummary.message || sendSummary.error} description={sendSummary.summary ? `Sent ${sendSummary.summary.sent}/${sendSummary.summary.total} — ${sendSummary.summary.failed} failed` : null} type={sendSummary.summary ? 'warning' : 'error'} showIcon action={sendSummary.failures ? (<Button size="small" onClick={() => setModalOpen(true)}>Details</Button>) : null} />
-              </div>
-            )}
-        {/* <Modal title="Send failures" open={modalOpen} onCancel={() => setModalOpen(false)} footer={<Button onClick={() => setModalOpen(false)}>Close</Button>}>
-          {sendSummary && sendSummary.failures ? (
-            <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-              {sendSummary.failures.map((f: any) => (
-                <div key={f.group_id} style={{ marginBottom: 8 }}>
-                  <strong>Group {f.group_id}:</strong>
-                  <div>{f.error || 'Unknown error'}</div>
+            <div className="card-inner">
+              {sendSummary && (
+                <div style={{ marginBottom: 12 }}>
+                  <Alert message={sendSummary.message || sendSummary.error} description={sendSummary.summary ? `Sent ${sendSummary.summary.sent}/${sendSummary.summary.total} — ${sendSummary.summary.failed} failed` : null} type={sendSummary.summary ? 'warning' : 'error'} showIcon action={sendSummary.failures ? (<Button size="small" onClick={() => setModalOpen(true)}>Details</Button>) : null} />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div>No failure details available.</div>
-          )}
-        </Modal> */}
+              )}
+              {/* <Modal title="Send failures" open={modalOpen} onCancel={() => setModalOpen(false)} footer={<Button onClick={() => setModalOpen(false)}>Close</Button>}>
+                {sendSummary && sendSummary.failures ? (
+                  <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                    {sendSummary.failures.map((f: any) => (
+                      <div key={f.group_id} style={{ marginBottom: 8 }}>
+                        <strong>Group {f.group_id}:</strong>
+                        <div>{f.error || 'Unknown error'}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div>No failure details available.</div>
+                )}
+              </Modal> */}
 
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <Title level={3} style={{ textAlign: 'center' }}>Send Message</Title>
               <Form form={form} onFinish={handleSubmit} autoComplete="off">
                 <Form.Item name="message_body" rules={[{ required: true, message: 'Please input the message body' }]}>

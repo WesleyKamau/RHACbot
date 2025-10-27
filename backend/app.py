@@ -475,11 +475,8 @@ if __name__ == '__main__':
     flask_debug_env = os.getenv('FLASK_DEBUG', '')
     debug = flask_debug_env.lower() in ('1', 'true', 'yes', 'on')
 
-    # Prefer PORT for PaaS (Render sets PORT). Fall back to FLASK_RUN_PORT, then to 4000 for local dev.
-    port = int(os.getenv('PORT', os.getenv('FLASK_RUN_PORT', '4000')))
-
-    # Bind to 0.0.0.0 so the server is reachable from the host/container network (required by Render).
-    host = os.getenv('FLASK_RUN_HOST', '0.0.0.0')
+    host = os.getenv('FLASK_RUN_HOST', '127.0.0.1')
+    port = int(os.getenv('FLASK_RUN_PORT', '4000'))
 
     # Initialize app resources that should only run in the main process
     init_app()
