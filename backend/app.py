@@ -476,7 +476,7 @@ if __name__ == '__main__':
     debug = flask_debug_env.lower() in ('1', 'true', 'yes', 'on')
 
     host = os.getenv('FLASK_RUN_HOST', '127.0.0.1')
-    port = int(os.getenv('FLASK_RUN_PORT', '5000'))
+    port = int(os.getenv('FLASK_RUN_PORT', '4000'))
 
     # Initialize app resources that should only run in the main process
     init_app()
