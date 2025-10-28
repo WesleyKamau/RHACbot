@@ -6,6 +6,8 @@ export async function healthCheck() {
   try {
     const res = await fetch(`${API_URL}/health`, {
       method: 'GET',
+      mode: 'cors',
+      credentials: 'include',
     });
     const data = await res.json().catch(() => ({}));
     return { status: res.status, data };
@@ -24,6 +26,8 @@ export async function getBuildings() {
 export async function addChat(payload) {
   const res = await fetch(`${API_URL}/chats/add`, {
     method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -34,6 +38,8 @@ export async function addChat(payload) {
 export async function sendMessage(formData) {
   const res = await fetch(`${API_URL}/messages/send`, {
     method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
     body: formData,
   });
   const data = await res.json().catch(() => ({}));
@@ -43,6 +49,8 @@ export async function sendMessage(formData) {
 export async function authenticate(password) {
   const res = await fetch(`${API_URL}/auth`, {
     method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
   });
