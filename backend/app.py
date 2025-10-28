@@ -15,11 +15,34 @@ from api_types import (
     SendMessageSuccessResponse, SendMessagePartialResponse, ApiError,
     is_valid_building_id, validate_message_body, is_valid_region_target
 )
+from dotenv import load_dotenv
+
+load_dotenv()  # Load .env for local development
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+
+# Configure CORS at module level so it works with Gunicorn
+# Must be done BEFORE init_app() and BEFORE routes are defined
+CORS(app, 
+     origins=[
+         "https://rhacbot.wesleykamau.com",
+         "https://www.rhacbot.wesleykamau.com",
+         "http://localhost:3000",
+         "http://localhost:3001",
+         # Allow all vercel.app preview deployments using regex pattern
+         r"https://.*\.vercel\.app$"
+     ],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization", "Accept"],
+     supports_credentials=True,
+     expose_headers=["Content-Type"],
+     max_age=3600,
+     send_wildcard=False,
+     always_send=True
+)
 
 # Module-level defaults so module can be imported without side-effects
 GROUPME_API_URL = 'https://api.groupme.com/v3'
@@ -54,22 +77,6 @@ def init_app():
     except Exception:
         # Fall back gracefully if method is missing for older installs
         app.config['MONGODB_DB_NAME'] = app.config.get('MONGODB_DB', 'rhac_db')
-    
-    # Configure CORS to allow frontend domain
-    # Must be configured before routes to ensure preflight requests work
-    CORS(app, 
-         origins=[
-             "https://rhacbot.wesleykamau.com",
-             "https://www.rhacbot.wesleykamau.com",
-             "http://localhost:3000",
-             "http://localhost:3001"
-         ],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         allow_headers=["Content-Type", "Authorization"],
-         supports_credentials=True,
-         expose_headers=["Content-Type"],
-         max_age=3600  # Cache preflight requests for 1 hour
-    )
 
     # Load buildings data safely. Try multiple locations (app root, module dir, cwd)
     try:
@@ -259,12 +266,16 @@ def send_messages():
             if not is_valid_region_target(region):
                 return jsonify({'error': f'Invalid region: {region}'}), 400
         
-        if 'all' in regions:
+        # Normalize regions to lowercase for case-insensitive comparison
+        regions_lower = [r.lower() for r in regions]
+        
+        if 'all' in regions_lower:
             # Use all building IDs
             building_ids = [building['id'] for building in buildings_data]
         else:
-            # Get building IDs for the specified regions
-            building_ids = [building['id'] for building in buildings_data if building['region'] in regions]
+            # Get building IDs for the specified regions (case-insensitive)
+            building_ids = [building['id'] for building in buildings_data 
+                          if building['region'].lower() in regions_lower]
             if not building_ids:
                 return jsonify({'error': f'No buildings found in regions {regions}'}), 400
 
@@ -372,7 +383,9 @@ def get_buildings():
 @app.route('/api/auth', methods=['POST'])
 def auth():
     try:
-        data = request.get_json() or {}
+        # Try to get JSON data, fallback to empty dict if not JSON content-type
+        data = request.get_json(silent=True) or {}
+            
         auth_request = AuthRequest.from_dict(data)
         
         if not auth_request.password:
@@ -383,11 +396,21 @@ def auth():
             error_response = AuthErrorResponse(error='Missing password')
             return jsonify(error_response.to_dict()), 400
         
-        if auth_request.password == app.config.get('ADMIN_PASSWORD'):
+        
+        admin_password = app.config.get('ADMIN_PASSWORD')
+        
+        # Check if ADMIN_PASSWORD is configured
+        if not admin_password:
+            logger.error("ADMIN_PASSWORD environment variable is not configured")
+            error_response = AuthErrorResponse(error='Authentication not configured')
+            return jsonify(error_response.to_dict()), 500
+        
+        if auth_request.password == admin_password:
             success_response = AuthResponse(message='Authenticated')
             return jsonify(success_response.to_dict()), 200
         else:
             error_response = AuthErrorResponse(error='Unauthorized')
+            logger.warning("Failed authentication attempt")
             return jsonify(error_response.to_dict()), 401
             
     except Exception as e:
