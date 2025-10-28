@@ -89,7 +89,6 @@ function handleTreeSelectChange(newValue: any[], treeData: any[]) {
       
       // If region is explicitly selected, keep it regardless of children
       // OR if all children are selected, keep the region
-      const allChildrenSelected = buildings.length > 0 && buildings.every((bid) => valueSet.has(bid));
       
       // Keep the region if it's selected directly or all children are selected
       const regionNode = allRegionsNode.children?.find((n: any) => n.value === strValue);
