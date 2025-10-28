@@ -8,7 +8,8 @@ import { sendMessage, authenticate } from '../../../lib/api';
 import type { 
   Building, 
   ApiResponse, 
-  AuthResponse, 
+  AuthResponse,
+  AuthErrorResponse,
   SendMessageResponse,
   MessageSendSummary,
   TreeSelectNode 
@@ -57,7 +58,7 @@ export default function SendMessagePage() {
   const handleLogin = async (values: any) => {
     const { password } = values;
     try {
-      const res: ApiResponse<AuthResponse> = await authenticate(password);
+      const res: ApiResponse<AuthResponse | AuthErrorResponse> = await authenticate(password);
       if (res.status === 200) {
         setAuthenticated(true);
       } else {
