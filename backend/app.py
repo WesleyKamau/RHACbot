@@ -9,7 +9,7 @@ from config import Config
 import os
 from pathlib import Path
 from pymongo import MongoClient, errors as pymongo_errors
-from types import (
+from api_types import (
     HealthCheckResponse, AddChatRequest, AddChatResponse, AuthRequest,
     AuthResponse, AuthErrorResponse, MessageSendSummary, MessageFailure,
     SendMessageSuccessResponse, SendMessagePartialResponse, ApiError,
