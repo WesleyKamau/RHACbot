@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Form, Button, Input, Upload, TreeSelect, Typography, message, Alert, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import buildings from '../../../data/buildings.json';
@@ -154,6 +155,13 @@ export default function SendMessagePage() {
                   </Button>
                 </Form.Item>
               </Form>
+              
+              <Paragraph style={{ textAlign: 'center', fontSize: 14, color: 'rgba(0,0,0,0.55)', marginTop: 24, lineHeight: 1.6 }}>
+                Are you an RA looking to connect your floor's GroupMe?<br />
+                <Link href="/add-chat" style={{ color: '#ba0001', fontWeight: 600 }}>
+                  Go to Add Chat →
+                </Link>
+              </Paragraph>
             </div>
           </div>
         </div>
