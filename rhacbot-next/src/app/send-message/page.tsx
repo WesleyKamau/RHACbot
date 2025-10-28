@@ -82,17 +82,10 @@ export default function SendMessagePage() {
       }
     });
 
-    // Check if "Campuswide" is selected
-    if (valueSet.has(allRegionValue)) {
-      // If all regions selected, just return that
-      resultValues.push({ value: allRegionValue, label: 'Campuswide' });
-      setSelectedValues(resultValues);
-      return;
-    }
-
-    // Check if all individual regions are selected (should auto-select "Campuswide")
+    // If "Campuswide" is selected directly, or all individual regions are selected,
+    // treat as "Campuswide" and return early.
     const allRegionsSelected = allRegions.every((r) => valueSet.has(r));
-    if (allRegionsSelected && allRegions.length > 0) {
+    if (valueSet.has(allRegionValue) || (allRegionsSelected && allRegions.length > 0)) {
       resultValues.push({ value: allRegionValue, label: 'Campuswide' });
       setSelectedValues(resultValues);
       return;
