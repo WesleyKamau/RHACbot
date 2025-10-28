@@ -55,6 +55,79 @@ export default function SendMessagePage() {
   // Keep an "All Regions" root option (children empty array to satisfy TreeSelect typing)
   treeData.unshift({ title: 'All Regions', value: 'region-all', selectable: true, children: [] });
 
+  // Handle tree select change with parent-child logic
+  const handleTreeSelectChange = (newValue: any[]) => {
+    const valueSet = new Set(newValue.map((v: any) => v.value || v));
+    const resultValues: any[] = [];
+
+    // Build a map of region to its buildings
+    const regionToBuildings = new Map<string, string[]>();
+    treeData.forEach((node) => {
+      if (node.children && node.children.length > 0) {
+        const buildingIds = node.children.map((child) => String(child.value));
+        regionToBuildings.set(String(node.value), buildingIds);
+      }
+    });
+
+    // Process each selected value
+    valueSet.forEach((value) => {
+      const strValue = String(value);
+      
+      // If it's a region
+      if (strValue.startsWith('region-')) {
+        const buildings = regionToBuildings.get(strValue) || [];
+        
+        // Check if all children are selected
+        const allChildrenSelected = buildings.every((bid) => valueSet.has(bid));
+        
+        if (allChildrenSelected || buildings.length === 0) {
+          // Keep the region, remove individual buildings from the set
+          resultValues.push({ value: strValue, label: treeData.find((n) => n.value === strValue)?.title || strValue });
+          buildings.forEach((bid) => valueSet.delete(bid));
+        } else {
+          // Not all children selected, don't include the region
+          // The buildings will be added individually below
+        }
+      }
+    });
+
+    // Add remaining building IDs (those not part of a fully-selected region)
+    valueSet.forEach((value) => {
+      const strValue = String(value);
+      if (!strValue.startsWith('region-')) {
+        // Find the building name
+        let buildingName = strValue;
+        treeData.forEach((node) => {
+          const child = node.children?.find((c) => String(c.value) === strValue);
+          if (child) buildingName = child.title || strValue;
+        });
+        resultValues.push({ value: strValue, label: buildingName });
+      }
+    });
+
+    // Check if any region should be auto-selected because all its children are selected
+    regionToBuildings.forEach((buildings, regionValue) => {
+      const regionInResult = resultValues.some((v) => v.value === regionValue);
+      if (!regionInResult && buildings.length > 0) {
+        const allChildrenSelected = buildings.every((bid) => 
+          resultValues.some((v) => v.value === bid)
+        );
+        if (allChildrenSelected) {
+          // Remove individual buildings and add the region
+          const filteredValues = resultValues.filter((v) => !buildings.includes(v.value));
+          filteredValues.push({ 
+            value: regionValue, 
+            label: treeData.find((n) => n.value === regionValue)?.title || regionValue 
+          });
+          resultValues.length = 0;
+          resultValues.push(...filteredValues);
+        }
+      }
+    });
+
+    setSelectedValues(resultValues);
+  };
+
   const handleLogin = async (values: any) => {
     const { password } = values;
     try {
@@ -307,13 +380,12 @@ export default function SendMessagePage() {
                   <TreeSelect 
                     treeData={treeData} 
                     value={selectedValues} 
-                    onChange={(value) => setSelectedValues(value as any)} 
+                    onChange={handleTreeSelectChange} 
                     treeCheckable={true} 
                     showCheckedStrategy={TreeSelect.SHOW_PARENT} 
                     placeholder="Select regions, buildings, or both" 
                     style={{ width: '100%' }} 
                     allowClear 
-                    treeCheckStrictly={true} 
                     labelInValue 
                   />
                 </Form.Item>
