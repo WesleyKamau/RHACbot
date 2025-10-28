@@ -119,8 +119,8 @@ Managing communication across dozens of residence hall floor chats is challengin
 
 ```mermaid
 graph TD
-    A[� RHAC Executive Board] -->|Compose Message| B[Next.js Frontend]
-    C[� Resident Advisor] -->|Submit GroupMe Link| B
+    A[👤 RHAC Executive Board] -->|Compose Message| B[Next.js Frontend]
+    C[🏠 Resident Advisor] -->|Submit GroupMe Link| B
     B -->|API Requests| D[Flask Backend]
     D -->|Store Data| E[(MongoDB)]
     D -->|Send Messages| F[GroupMe API]
