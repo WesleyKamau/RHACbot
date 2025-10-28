@@ -384,10 +384,7 @@ def get_buildings():
 def auth():
     try:
         # Try to get JSON data, fallback to empty dict if not JSON content-type
-        try:
-            data = request.get_json(silent=True) or {}
-        except Exception:
-            data = {}
+        data = request.get_json(silent=True) or {}
             
         auth_request = AuthRequest.from_dict(data)
         
