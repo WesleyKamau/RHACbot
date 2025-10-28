@@ -313,7 +313,6 @@ export default function SendMessagePage() {
                     placeholder="Select regions, buildings, or both" 
                     style={{ width: '100%' }} 
                     allowClear 
-                    treeDefaultExpandAll 
                     treeCheckStrictly={true} 
                     labelInValue 
                   />
