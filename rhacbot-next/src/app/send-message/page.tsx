@@ -139,7 +139,7 @@ export default function SendMessagePage() {
             <div className="card-inner">
               <Title level={3} style={{ textAlign: 'center', marginBottom: 8 }}>RHAC Executive Board Login</Title>
               <Paragraph style={{ textAlign: 'center', fontSize: 15, lineHeight: 1.6, marginBottom: 24, color: 'rgba(0,0,0,0.65)' }}>
-                Access message broadcasting to all connected floor chats
+                Send messages to all connected residence hall GroupMe chats
               </Paragraph>
               <Form onFinish={handleLogin} autoComplete="off" size="large">
                 <Form.Item 

@@ -19,8 +19,14 @@ export default function BackButton(): React.ReactElement | null {
     // If we're on the 404 page or there's no history, route to home
     if (pathname === "/404" || pathname === "/404.html" || !hasHistory) {
       router.push("/");
+      // After navigating to home, update hasHistory since now there will be history
+      setHasHistory(true);
     } else {
       router.back();
+      // After going back, check if there's still history
+      setTimeout(() => {
+        setHasHistory(window.history.length > 1);
+      }, 100);
     }
   };
 
