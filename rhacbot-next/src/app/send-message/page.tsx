@@ -5,6 +5,15 @@ import { Form, Button, Input, Upload, TreeSelect, Typography, message, Alert, Mo
 import { PlusOutlined } from '@ant-design/icons';
 import buildings from '../../../data/buildings.json';
 import { sendMessage, authenticate } from '../../../lib/api';
+import type { 
+  Building, 
+  ApiResponse, 
+  AuthResponse, 
+  SendMessageResponse,
+  MessageSendSummary,
+  TreeSelectNode 
+} from '../../../lib/types';
+import { isApiError, hasMessageFailures } from '../../../lib/types';
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -16,7 +25,7 @@ export default function SendMessagePage() {
   const [selectedValues, setSelectedValues] = useState<any[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
-  const [sendSummary, setSendSummary] = useState<any>(null);
+  const [sendSummary, setSendSummary] = useState<SendMessageResponse | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -24,18 +33,22 @@ export default function SendMessagePage() {
     window.scrollTo(0, 0);
   }, []);
 
-  const buildingsByRegion = (buildings as any[]).reduce((acc: any, b: any) => {
+  const buildingsByRegion = (buildings as Building[]).reduce((acc: Record<string, Building[]>, b: Building) => {
     const region = b.region || 'Unknown';
     if (!acc[region]) acc[region] = [];
     acc[region].push(b);
     return acc;
-  }, {} as any);
+  }, {} as Record<string, Building[]>);
 
-  const treeData = Object.entries(buildingsByRegion).map(([regionName, regionBuildings]) => ({
+  const treeData: TreeSelectNode[] = Object.entries(buildingsByRegion).map(([regionName, regionBuildings]) => ({
     title: regionName,
     value: `region-${regionName}`,
     selectable: true,
-    children: (regionBuildings as any[]).map((building) => ({ title: building.name, value: String(building.id) })),
+    children: regionBuildings.map((building) => ({ 
+      title: building.name, 
+      value: String(building.id),
+      selectable: true 
+    })),
   }));
 
   // Keep an "All Regions" root option (children empty array to satisfy TreeSelect typing)
@@ -44,8 +57,8 @@ export default function SendMessagePage() {
   const handleLogin = async (values: any) => {
     const { password } = values;
     try {
-      const res = await authenticate(password);
-      if (res && res.status === 200) {
+      const res: ApiResponse<AuthResponse> = await authenticate(password);
+      if (res.status === 200) {
         setAuthenticated(true);
       } else {
         messageApi.error('Incorrect password');
@@ -102,18 +115,26 @@ export default function SendMessagePage() {
     }
 
     try {
-      const response = await sendMessage(formData);
-      const data = (response && response.data) ? response.data : {};
-      // Match original behavior: use response.status and response.data
-      if (response && response.status === 200) {
-        messageApi.success(data.message || 'Messages sent successfully');
+      const response: ApiResponse<SendMessageResponse> = await sendMessage(formData);
+      const data = response.data;
+      
+      if (response.status === 200) {
+        if (!isApiError(data)) {
+          messageApi.success(data.message || 'Messages sent successfully');
+        }
         setSendSummary(null);
-      } else if (response && response.status === 207) {
+      } else if (response.status === 207) {
+        if (hasMessageFailures(data)) {
+          messageApi.warning(data.message || 'Some messages failed');
+        }
         setSendSummary(data);
-        messageApi.warning(data.message || 'Some messages failed');
       } else {
+        if (isApiError(data)) {
+          messageApi.error(data.error || 'Failed to send messages');
+        } else if (!isApiError(data)) {
+          messageApi.error(data.message || 'Failed to send messages');
+        }
         setSendSummary(data);
-        messageApi.error(data.message || 'Failed to send messages');
       }
       form.resetFields();
       setSelectedValues([]);
@@ -189,7 +210,29 @@ export default function SendMessagePage() {
             <div className="card-inner">
               {sendSummary && (
                 <div style={{ marginBottom: 16 }}>
-                  <Alert message={sendSummary.message || sendSummary.error} description={sendSummary.summary ? `Sent ${sendSummary.summary.sent}/${sendSummary.summary.total} — ${sendSummary.summary.failed} failed` : null} type={sendSummary.summary ? 'warning' : 'error'} showIcon action={sendSummary.failures ? (<Button size="small" onClick={() => setModalOpen(true)}>Details</Button>) : null} />
+                  <Alert 
+                    message={
+                      isApiError(sendSummary) 
+                        ? sendSummary.error 
+                        : sendSummary.message
+                    } 
+                    description={
+                      !isApiError(sendSummary) && sendSummary.summary
+                        ? `Sent ${sendSummary.summary.sent}/${sendSummary.summary.total} — ${sendSummary.summary.failed} failed` 
+                        : null
+                    } 
+                    type={
+                      isApiError(sendSummary) 
+                        ? 'error' 
+                        : (hasMessageFailures(sendSummary) ? 'warning' : 'info')
+                    } 
+                    showIcon 
+                    action={
+                      hasMessageFailures(sendSummary) 
+                        ? (<Button size="small" onClick={() => setModalOpen(true)}>Details</Button>) 
+                        : null
+                    } 
+                  />
                 </div>
               )}
 

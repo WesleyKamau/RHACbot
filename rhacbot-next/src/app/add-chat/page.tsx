@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { Form, Input, Button, Select, message, Typography } from 'antd';
 import buildings from '../../../data/buildings.json';
 import { addChat } from '../../../lib/api';
+import type { AddChatRequest, Building, ApiResponse, AddChatResponse } from '../../../lib/types';
+import { isApiError } from '../../../lib/types';
 
 const { Title, Paragraph } = Typography;
 const { Option } = Select;
@@ -16,27 +18,26 @@ export default function AddChatPage() {
   }, []);
 
   const handleSubmit = async (values: any) => {
-    const data = {
+    const data: AddChatRequest = {
       groupme_link: values.groupme_link,
       building_id: parseInt(String(values.building_id), 10),
       floor_number: parseInt(String(values.floor_number), 10),
     };
 
     try {
-      const res = await addChat(data);
-      // backend returns { status, data }
-      const messageText = res && res.data && res.data.message ? res.data.message : 'Chat added';
-      if (res && res.status === 200) {
-        messageApi.success(messageText);
+      const res: ApiResponse<AddChatResponse> = await addChat(data);
+      
+      if (res.status === 200) {
+        messageApi.success(res.data.message || 'Chat added successfully');
         form.resetFields();
+      } else if (isApiError(res.data)) {
+        messageApi.error(res.data.error);
       } else {
-        const errMsg = res && res.data && res.data.error ? res.data.error : 'Error adding chat';
-        messageApi.error(errMsg);
+        messageApi.error('Error adding chat');
       }
     } catch (err: any) {
       console.error(err);
-      const fallback = err && err.message ? err.message : 'Error adding chat';
-      messageApi.error(fallback);
+      messageApi.error(err?.message || 'Error adding chat');
     }
   };
 
@@ -103,7 +104,7 @@ export default function AddChatPage() {
                   optionFilterProp="children" 
                   filterOption={(input, option) => String(option?.children).toLowerCase().includes(String(input).toLowerCase())}
                 >
-                  {buildings.map((b: any) => (
+                  {(buildings as Building[]).map((b) => (
                     <Option key={b.id} value={b.id}>{b.name}</Option>
                   ))}
                 </Select>
