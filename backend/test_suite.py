@@ -26,7 +26,7 @@ import os
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Import app components
-from app import app, init_app, extract_group_id_and_token_from_link
+from app import app, extract_group_id_and_token_from_link
 from api_types import (
     HealthCheckResponse, AddChatRequest, AddChatResponse, AuthRequest,
     AuthResponse, AuthErrorResponse, MessageSendSummary, MessageFailure,
