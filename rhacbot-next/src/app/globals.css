@@ -266,10 +266,14 @@ body {
 @media (max-width: 640px) {
   .vanta-container {
     background-color: #ffffff !important;
-    min-height: auto !important; /* Remove fixed height on mobile */
+    min-height: 100vh !important; /* Keep viewport height for centering */
     height: auto !important;
-    display: block !important; /* Change from flex to block */
+    display: flex !important; /* Keep flex for centering */
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: stretch !important;
     padding: 0 !important;
+    overflow: hidden !important; /* Prevent scrollbar */
   }
   
   /* Hide any Vanta canvas on mobile */
@@ -279,20 +283,23 @@ body {
   
   /* Override the centered flex layout on mobile */
   .vanta-container > div {
-    display: block !important; /* Change from flex to block */
+    display: block !important;
     height: auto !important;
     width: 100% !important;
     min-height: auto !important;
+    flex-shrink: 0 !important;
   }
   
   /* Remove the grey background on mobile */
   .non-stylish-container {
     background-color: #ffffff;
-    min-height: auto !important; /* Remove 100vh constraint */
-    height: auto !important; /* Allow content to determine height */
-    display: block !important; /* Change from flex to block */
-    overflow-y: visible !important;
-    overflow-x: hidden;
+    min-height: 100vh !important; /* Keep viewport height for centering */
+    height: auto !important;
+    display: flex !important; /* Keep flex for centering */
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    overflow: hidden !important; /* Prevent scrollbar */
     padding: 0 !important; /* Remove safe-area padding here */
   }
   
@@ -302,6 +309,7 @@ body {
     height: auto !important;
     width: 100% !important;
     min-height: auto !important;
+    flex-shrink: 0 !important;
   }
 }
 
