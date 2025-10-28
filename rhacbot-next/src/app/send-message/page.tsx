@@ -41,8 +41,8 @@ export default function SendMessagePage() {
     return acc;
   }, {} as Record<string, Building[]>);
 
-  const treeData: TreeSelectNode[] = Object.entries(buildingsByRegion).map(([regionName, regionBuildings]) => ({
-    title: regionName,
+  const regionNodes: TreeSelectNode[] = Object.entries(buildingsByRegion).map(([regionName, regionBuildings]) => ({
+    title: `${regionName} Campus`,
     value: `region-${regionName}`,
     selectable: true,
     children: regionBuildings.map((building) => ({ 
@@ -52,8 +52,107 @@ export default function SendMessagePage() {
     })),
   }));
 
-  // Keep an "All Regions" root option (children empty array to satisfy TreeSelect typing)
-  treeData.unshift({ title: 'All Regions', value: 'region-all', selectable: true, children: [] });
+  // Make "Campuswide" the parent of all regions
+  const treeData: TreeSelectNode[] = [{
+    title: 'Campuswide',
+    value: 'region-all',
+    selectable: true,
+    children: regionNodes
+  }];
+
+  // Handle tree select change with parent-child logic
+  const handleTreeSelectChange = (newValue: any[]) => {
+    const valueSet = new Set(newValue.map((v: any) => v.value || v));
+    const resultValues: any[] = [];
+
+    // Build maps for the three-level hierarchy
+    const allRegionsNode = treeData[0];
+    const allRegionValue = 'region-all';
+    const allRegions: string[] = [];
+    const regionToBuildings = new Map<string, string[]>();
+    
+    // Map each region to its buildings
+    allRegionsNode.children?.forEach((regionNode) => {
+      const regionValue = String(regionNode.value);
+      allRegions.push(regionValue);
+      
+      if (regionNode.children && regionNode.children.length > 0) {
+        const buildingIds = regionNode.children.map((child) => String(child.value));
+        regionToBuildings.set(regionValue, buildingIds);
+      }
+    });
+
+    // Check if "Campuswide" is selected
+    if (valueSet.has(allRegionValue)) {
+      // If all regions selected, just return that
+      resultValues.push({ value: allRegionValue, label: 'Campuswide' });
+      setSelectedValues(resultValues);
+      return;
+    }
+
+    // Check if all individual regions are selected (should auto-select "Campuswide")
+    const allRegionsSelected = allRegions.every((r) => valueSet.has(r));
+    if (allRegionsSelected && allRegions.length > 0) {
+      resultValues.push({ value: allRegionValue, label: 'Campuswide' });
+      setSelectedValues(resultValues);
+      return;
+    }
+
+    // Process each selected value
+    valueSet.forEach((value) => {
+      const strValue = String(value);
+      
+      // If it's a region (but not "all")
+      if (strValue.startsWith('region-') && strValue !== allRegionValue) {
+        const buildings = regionToBuildings.get(strValue) || [];
+        
+        // If region is explicitly selected, keep it regardless of children
+        // OR if all children are selected, keep the region
+        
+        // Keep the region if it's selected directly or all children are selected
+        const regionNode = allRegionsNode.children?.find((n) => n.value === strValue);
+        resultValues.push({ value: strValue, label: regionNode?.title || strValue });
+        // Remove children from valueSet so they don't appear individually
+        buildings.forEach((bid) => valueSet.delete(bid));
+      }
+    });
+
+    // Add remaining building IDs (those not part of a fully-selected region)
+    valueSet.forEach((value) => {
+      const strValue = String(value);
+      if (!strValue.startsWith('region-')) {
+        // Find the building name
+        let buildingName = strValue;
+        allRegionsNode.children?.forEach((regionNode) => {
+          const child = regionNode.children?.find((c) => String(c.value) === strValue);
+          if (child) buildingName = child.title || strValue;
+        });
+        resultValues.push({ value: strValue, label: buildingName });
+      }
+    });
+
+    // Check if any region should be auto-selected because all its buildings are selected
+    regionToBuildings.forEach((buildings, regionValue) => {
+      const regionInResult = resultValues.some((v) => v.value === regionValue);
+      if (!regionInResult && buildings.length > 0) {
+        const allChildrenSelected = buildings.every((bid) => 
+          resultValues.some((v) => v.value === bid)
+        );
+        if (allChildrenSelected) {
+          // Remove individual buildings and add the region
+          const filteredValues = resultValues.filter((v) => !buildings.includes(v.value));
+          const regionNode = allRegionsNode.children?.find((n) => n.value === regionValue);
+          filteredValues.push({ 
+            value: regionValue, 
+            label: regionNode?.title || regionValue 
+          });
+          resultValues.splice(0, resultValues.length, ...filteredValues);
+        }
+      }
+    });
+
+    setSelectedValues(resultValues);
+  };
 
   const handleLogin = async (values: any) => {
     const { password } = values;
@@ -252,8 +351,8 @@ export default function SendMessagePage() {
               }}>
                 <Paragraph style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'rgba(0,0,0,0.75)' }}>
                   <strong>How targeting works:</strong><br />
-                  • Select "All Regions" to reach every connected floor chat<br />
-                  • Select specific regions (e.g., "North") to target all buildings in that area<br />
+                  • Select "Campuswide" to reach every connected floor chat across campus<br />
+                  • Select specific regions (e.g., "North Campus") to target all buildings in that area<br />
                   • Select individual buildings to reach only those residence halls<br />
                   • Mix and match regions and buildings for custom targeting
                 </Paragraph>
@@ -307,14 +406,12 @@ export default function SendMessagePage() {
                   <TreeSelect 
                     treeData={treeData} 
                     value={selectedValues} 
-                    onChange={(value) => setSelectedValues(value as any)} 
+                    onChange={handleTreeSelectChange} 
                     treeCheckable={true} 
                     showCheckedStrategy={TreeSelect.SHOW_PARENT} 
                     placeholder="Select regions, buildings, or both" 
                     style={{ width: '100%' }} 
                     allowClear 
-                    treeDefaultExpandAll 
-                    treeCheckStrictly={true} 
                     labelInValue 
                   />
                 </Form.Item>
