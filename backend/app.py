@@ -46,14 +46,14 @@ def is_allowed_origin(origin):
 # Configure CORS at module level so it works with Gunicorn
 # Must be done BEFORE init_app() and BEFORE routes are defined
 CORS(app, 
-     origins=is_allowed_origin,  # Use function for dynamic origin checking
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type", "Authorization", "Accept"],
-     supports_credentials=True,
-     expose_headers=["Content-Type"],
-     max_age=3600,
-     send_wildcard=False,
-     always_send=True
+     resources={r"/api/*": {
+         "origins": is_allowed_origin,  # Use function for dynamic origin checking
+         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         "allow_headers": ["Content-Type", "Authorization", "Accept"],
+         "supports_credentials": True,
+         "expose_headers": ["Content-Type"],
+         "max_age": 3600
+     }}
 )
 
 # Module-level defaults so module can be imported without side-effects
