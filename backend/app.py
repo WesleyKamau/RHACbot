@@ -21,6 +21,24 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
+# Configure CORS at module level so it works with Gunicorn
+# Must be done BEFORE init_app() and BEFORE routes are defined
+CORS(app, 
+     origins=[
+         "https://rhacbot.wesleykamau.com",
+         "https://www.rhacbot.wesleykamau.com",
+         "http://localhost:3000",
+         "http://localhost:3001"
+     ],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization", "Accept"],
+     supports_credentials=True,
+     expose_headers=["Content-Type"],
+     max_age=3600,
+     send_wildcard=False,
+     always_send=True
+)
+
 # Module-level defaults so module can be imported without side-effects
 GROUPME_API_URL = 'https://api.groupme.com/v3'
 buildings_data = []
@@ -54,25 +72,6 @@ def init_app():
     except Exception:
         # Fall back gracefully if method is missing for older installs
         app.config['MONGODB_DB_NAME'] = app.config.get('MONGODB_DB', 'rhac_db')
-    
-    # Configure CORS to allow frontend domain
-    # Must be configured before routes to ensure preflight requests work
-    cors_config = {
-        "origins": [
-            "https://rhacbot.wesleykamau.com",
-            "https://www.rhacbot.wesleykamau.com",
-            "http://localhost:3000",
-            "http://localhost:3001"
-        ],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization", "Accept"],
-        "supports_credentials": True,
-        "expose_headers": ["Content-Type"],
-        "max_age": 3600,
-        "send_wildcard": False,
-        "always_send": True
-    }
-    CORS(app, resources={r"/api/*": cors_config})
 
     # Load buildings data safely. Try multiple locations (app root, module dir, cwd)
     try:
