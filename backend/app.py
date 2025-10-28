@@ -57,19 +57,22 @@ def init_app():
     
     # Configure CORS to allow frontend domain
     # Must be configured before routes to ensure preflight requests work
-    CORS(app, 
-         origins=[
-             "https://rhacbot.wesleykamau.com",
-             "https://www.rhacbot.wesleykamau.com",
-             "http://localhost:3000",
-             "http://localhost:3001"
-         ],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         allow_headers=["Content-Type", "Authorization"],
-         supports_credentials=True,
-         expose_headers=["Content-Type"],
-         max_age=3600  # Cache preflight requests for 1 hour
-    )
+    cors_config = {
+        "origins": [
+            "https://rhacbot.wesleykamau.com",
+            "https://www.rhacbot.wesleykamau.com",
+            "http://localhost:3000",
+            "http://localhost:3001"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "Accept"],
+        "supports_credentials": True,
+        "expose_headers": ["Content-Type"],
+        "max_age": 3600,
+        "send_wildcard": False,
+        "always_send": True
+    }
+    CORS(app, resources={r"/api/*": cors_config})
 
     # Load buildings data safely. Try multiple locations (app root, module dir, cwd)
     try:
