@@ -119,17 +119,20 @@ Managing communication across dozens of residence hall floor chats is challengin
 
 ```mermaid
 graph TD
-    A[👤 Admin User] -->|Compose Message| B[Next.js Frontend]
-    C[🏠 Floor Resident] -->|Submit GroupMe Link| B
+    A[� RHAC Executive Board] -->|Compose Message| B[Next.js Frontend]
+    C[� Resident Advisor] -->|Submit GroupMe Link| B
     B -->|API Requests| D[Flask Backend]
     D -->|Store Data| E[(MongoDB)]
     D -->|Send Messages| F[GroupMe API]
     F -->|Deliver| G[Floor Group Chats]
     
-    style B fill:#61dafb,stroke:#333,stroke-width:2px
-    style D fill:#000,stroke:#333,stroke-width:2px,color:#fff
-    style E fill:#4db33d,stroke:#333,stroke-width:2px
-    style F fill:#00aff0,stroke:#333,stroke-width:2px
+    style A fill:#ba0001,stroke:#333,stroke-width:2px,color:#fff
+    style B fill:#1890ff,stroke:#333,stroke-width:2px,color:#fff
+    style C fill:#52c41a,stroke:#333,stroke-width:2px,color:#fff
+    style D fill:#2c2c2c,stroke:#666,stroke-width:2px,color:#fff
+    style E fill:#13aa52,stroke:#333,stroke-width:2px,color:#fff
+    style F fill:#00aff0,stroke:#333,stroke-width:2px,color:#000
+    style G fill:#faad14,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### 📦 Monorepo Structure
