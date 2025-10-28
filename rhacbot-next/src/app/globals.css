@@ -239,6 +239,27 @@ body {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
+/* Mobile: disable Vanta completely and use clean white background */
+@media (max-width: 640px) {
+  .vanta-container {
+    background-color: #ffffff !important;
+  }
+  
+  /* Hide any Vanta canvas on mobile */
+  .vanta-container canvas {
+    display: none !important;
+  }
+  
+  /* Remove the grey background on mobile */
+  .non-stylish-container {
+    background-color: #ffffff;
+    min-height: 100vh;
+    height: auto; /* Allow content to determine height */
+    overflow-y: auto; /* Allow scrolling if needed */
+    overflow-x: hidden;
+  }
+}
+
 /* Ensure the page content sits above the Vanta canvas. Vanta injects a canvas as a child of the container. */
 .vanta-container > *,
 .non-stylish-container > * {
