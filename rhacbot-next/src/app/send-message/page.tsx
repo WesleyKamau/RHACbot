@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Button, Input, Upload, TreeSelect, Typography, message, Alert, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import buildings from '../../../data/buildings.json';
@@ -18,6 +18,10 @@ export default function SendMessagePage() {
   const [sendSummary, setSendSummary] = useState<any>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const buildingsByRegion = (buildings as any[]).reduce((acc: any, b: any) => {
     const region = b.region || 'Unknown';
@@ -121,7 +125,7 @@ export default function SendMessagePage() {
 
     if (!authenticated) {
       return (
-        <div style={{ 
+        <div className="page-wrapper scrollable-page" style={{ 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
@@ -164,7 +168,7 @@ export default function SendMessagePage() {
   );
 
       return (
-        <div style={{ 
+        <div className="page-wrapper scrollable-page" style={{ 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
@@ -289,7 +293,7 @@ export default function SendMessagePage() {
                 </Form.Item>
 
                 <Paragraph style={{ textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.55)', margin: 0, lineHeight: 1.5 }}>
-                  Messages are sent immediately and cannot be unsent. Please review carefully before sending.
+                  Messages are sent immediately and cannot be unsent (for now, I could add that later). Please review carefully before sending.
                 </Paragraph>
               </Form>
             </div>

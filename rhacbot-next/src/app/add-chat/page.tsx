@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from 'react';
 import { Form, Input, Button, Select, message, Typography } from 'antd';
 import buildings from '../../../data/buildings.json';
 import { addChat } from '../../../lib/api';
@@ -9,6 +10,10 @@ const { Option } = Select;
 export default function AddChatPage() {
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleSubmit = async (values: any) => {
     const data = {
@@ -36,7 +41,7 @@ export default function AddChatPage() {
   };
 
   return (
-    <div style={{ 
+    <div className="page-wrapper scrollable-page" style={{ 
       display: 'flex', 
       justifyContent: 'center', 
       alignItems: 'center', 

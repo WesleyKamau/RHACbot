@@ -54,7 +54,7 @@ export default function HomePage() {
               Welcome, RAs! <span className="wave-emoji">👋</span>
             </Title>
             <Paragraph style={{ textAlign: 'center', fontSize: 'clamp(15px, 3vw, 17px)', lineHeight: 1.6, marginBottom: 24, color: 'rgba(0,0,0,0.75)' }}>
-              Connect your floor's GroupMe to RHAC
+              Connect your floor's GroupMe to RHAC.
             </Paragraph>
 
             {/* Primary CTA for RAs */}
