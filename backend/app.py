@@ -54,7 +54,21 @@ def init_app():
     except Exception:
         # Fall back gracefully if method is missing for older installs
         app.config['MONGODB_DB_NAME'] = app.config.get('MONGODB_DB', 'rhac_db')
-    CORS(app)
+    
+    # Configure CORS to allow frontend domain
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": [
+                "https://rhacbot.wesleykamau.com",
+                "https://www.rhacbot.wesleykamau.com",
+                "http://localhost:3000",
+                "http://localhost:3001"
+            ],
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "supports_credentials": True
+        }
+    })
 
     # Load buildings data safely. Try multiple locations (app root, module dir, cwd)
     try:
