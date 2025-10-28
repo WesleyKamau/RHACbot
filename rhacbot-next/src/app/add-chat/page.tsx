@@ -7,11 +7,24 @@ import type { AddChatRequest, Building, ApiResponse, AddChatResponse } from '../
 import { isApiError } from '../../../lib/types';
 
 const { Title, Paragraph } = Typography;
-const { Option } = Select;
+const { Option, OptGroup } = Select;
 
 export default function AddChatPage() {
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
+
+  // Group buildings by region
+  const buildingsByRegion = (buildings as Building[]).reduce((acc, building) => {
+    const region = building.region || 'Other';
+    if (!acc[region]) {
+      acc[region] = [];
+    }
+    acc[region].push(building);
+    return acc;
+  }, {} as Record<string, Building[]>);
+
+  // Sort regions and buildings within each region
+  const sortedRegions = Object.keys(buildingsByRegion).sort();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -102,10 +115,24 @@ export default function AddChatPage() {
                   showSearch 
                   placeholder="Select your residence hall" 
                   optionFilterProp="children" 
-                  filterOption={(input, option) => String(option?.children).toLowerCase().includes(String(input).toLowerCase())}
+                  filterOption={(input, option) => {
+                    // Enable search across both building names and regions
+                    if (option?.children) {
+                      return String(option.children).toLowerCase().includes(String(input).toLowerCase());
+                    }
+                    return false;
+                  }}
                 >
-                  {(buildings as Building[]).map((b) => (
-                    <Option key={b.id} value={b.id}>{b.name}</Option>
+                  {sortedRegions.map((region) => (
+                    <OptGroup key={region} label={`${region} Campus`}>
+                      {buildingsByRegion[region]
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((building) => (
+                          <Option key={building.id} value={building.id}>
+                            {building.name}
+                          </Option>
+                        ))}
+                    </OptGroup>
                   ))}
                 </Select>
               </Form.Item>
