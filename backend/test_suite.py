@@ -1012,9 +1012,9 @@ class TestDatabaseFallback(unittest.TestCase):
     @patch('app._fallback_chats', [])
     @patch('app.join_group')
     @patch('app.add_chat')
-    def test_add_chat_with_fallback_storage(self, mock_add_chat, mock_join):
+    def test_add_chat_with_fallback_storage(self, mock_add_chat, mock_join_group):
         """Test adding chat works with fallback storage"""
-        mock_join.return_value = True
+        mock_join_group.return_value = True
         mock_add_chat.return_value = {
             'groupme_id': '12345',
             'building_id': 1,
