@@ -598,7 +598,7 @@ def send_message_to_group(group_id, text, image_url=None):
 # Error handlers
 @app.errorhandler(404)
 def not_found(error):
-    """Handle 404 errors - don't log for security scanners."""
+    """Handles 404 errors - don't log for security scanners."""
     # Only log 404s for API endpoints (ignore scanner noise)
     if request.path.startswith('/api/'):
         logger.warning("404 on API endpoint: %s", request.path)
@@ -607,14 +607,14 @@ def not_found(error):
 
 @app.errorhandler(405)
 def method_not_allowed(error):
-    """Handle 405 Method Not Allowed errors."""
+    """Handles 405 Method Not Allowed errors."""
     logger.warning("405 Method Not Allowed: %s %s", request.method, request.path)
     return jsonify({'error': 'Method not allowed'}), 405
 
 
 @app.errorhandler(500)
 def internal_error(error):
-    """Handle 500 Internal Server errors."""
+    """Handles 500 Internal Server errors."""
     logger.exception("500 Internal Server Error")
     return jsonify({'error': 'Internal server error'}), 500
 
