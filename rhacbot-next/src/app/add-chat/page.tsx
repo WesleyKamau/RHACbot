@@ -95,6 +95,19 @@ export default function AddChatPage() {
               </Paragraph>
             </div>
 
+            {/* Important Notice Box */}
+            <div style={{ 
+              background: '#fff7e6', 
+              border: '1px solid #ffd591',
+              borderRadius: '8px', 
+              padding: '16px', 
+              marginBottom: 24
+            }}>
+              <Paragraph style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'rgba(0,0,0,0.75)' }}>
+                <strong>⚠️ Important:</strong> After submitting, you may need to approve RHACbot from your group's pending member requests. Check your GroupMe group settings to accept the join request.
+              </Paragraph>
+            </div>
+
             <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
               <Form.Item 
                 name="groupme_link" 
