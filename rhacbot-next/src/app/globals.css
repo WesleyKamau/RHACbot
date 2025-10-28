@@ -217,12 +217,12 @@ body {
   .scrollable-page {
     min-height: 100% !important;
     height: auto !important;
-    padding: 20px 0 !important;
+    padding: 40px 16px 20px 16px !important; /* Extra top padding to prevent cutoff */
   }
   
   .scrollable-page .card {
-    padding: 16px !important;
-    margin: 0 !important;
+    padding: 20px 16px !important;
+    margin: 0 auto !important;
   }
 }
 
@@ -312,6 +312,8 @@ body {
     overflow-y: auto !important;
     overflow-x: hidden !important;
     position: fixed !important;
+    align-items: flex-start !important; /* Start from top on mobile too */
+    justify-content: flex-start !important;
   }
   
   /* Hide any Vanta canvas on mobile */
@@ -393,6 +395,12 @@ body {
   justify-content: center;
 }
 
+/* Don't center scrollable pages - align to top */
+.vanta-container:has(.scrollable-page),
+.non-stylish-container:has(.scrollable-page) {
+  align-items: flex-start !important;
+}
+
 /* The immediate child wrapper (the one with inline zIndex) should stretch to container and center its children */
 .vanta-container > div {
   display: flex;
@@ -400,6 +408,15 @@ body {
   justify-content: center;
   width: 100%;
   height: 100%;
+}
+
+/* Scrollable container should not center */
+.vanta-container > .scrollable-container,
+.non-stylish-container > .scrollable-container {
+  display: block !important;
+  align-items: flex-start !important;
+  height: auto !important;
+  min-height: 100% !important;
 }
 
 /* Remove the card's default top/bottom margins when inside the vanta wrapper so it truly centers */

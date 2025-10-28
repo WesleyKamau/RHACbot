@@ -1,10 +1,20 @@
 "use client";
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Typography, Divider } from 'antd';
 
 const { Title, Paragraph } = Typography;
 
 export default function LearnMorePage() {
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // Also try to scroll the container
+    const container = document.getElementById('vanta-root');
+    if (container) {
+      container.scrollTop = 0;
+    }
+  }, []);
+
   return (
     <div 
       className="page-wrapper scrollable-page"
@@ -14,12 +24,12 @@ export default function LearnMorePage() {
         justifyContent: 'center', 
         alignItems: 'flex-start',
         minHeight: '100vh',
-        padding: '20px 0',
+        padding: '40px 20px',
         boxSizing: 'border-box',
         overflowY: 'auto',
         overflowX: 'hidden'
       }}>
-      <div className="card" style={{ maxWidth: '800px', margin: '20px auto' }}>
+      <div className="card" style={{ maxWidth: '800px', width: '100%' }}>
         <div className="card-inner">
           <img src={'/rhac-logo.png'} alt="RHAC Logo" className="logo" style={{ maxWidth: '120px', display: 'block', margin: '0 auto 20px' }} />
           
@@ -112,6 +122,20 @@ export default function LearnMorePage() {
               style={{ color: '#ba0001', fontWeight: 600 }}
             >
               involvedliving.osu.edu/rhac/about-us
+            </a>
+          </Paragraph>
+
+          <Divider style={{ margin: '32px 0 24px 0' }} />
+
+          <Paragraph style={{ textAlign: 'center', fontSize: '14px', color: 'rgba(0,0,0,0.45)', marginBottom: 0 }}>
+            Built by{' '}
+            <a 
+              href="https://wesleykamau.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ color: '#ba0001', fontWeight: 600, textDecoration: 'none' }}
+            >
+              Wesley Kamau
             </a>
           </Paragraph>
         </div>
