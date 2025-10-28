@@ -42,19 +42,19 @@ export default function HomePage() {
         boxSizing: 'border-box'
       }}>
       <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          {/* <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
             <div className={`env-badge ${ENV === 'development' ? 'env-dev' : 'env-prod'}`} title={`Environment: ${ENV}`}>
               {ENV}
             </div>
-          </div>
+          </div> */}
 
           <div className="homepage-container">
             <img src={'/rhac-logo.png'} alt="RHAC Logo" className="logo" />
             <Title level={2} style={{ textAlign: 'center', fontSize: 'clamp(24px, 5vw, 32px)', marginBottom: 8 }}>
-              Welcome, RAs! 👋
+              Welcome, RAs! <span className="wave-emoji">👋</span>
             </Title>
             <Paragraph style={{ textAlign: 'center', fontSize: 'clamp(15px, 3vw, 17px)', lineHeight: 1.6, marginBottom: 24, color: 'rgba(0,0,0,0.75)' }}>
-              Connect your floor's GroupMe to RHACbot
+              Connect your floor's GroupMe to RHAC
             </Paragraph>
 
             {/* Primary CTA for RAs */}

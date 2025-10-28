@@ -226,6 +226,24 @@ body {
   }
 }
 
+/* Wave animation for emoji */
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.wave-emoji {
+  display: inline-block;
+  animation: wave 2.5s ease-in-out;
+  transform-origin: 70% 70%;
+}
+
 .env-badge {
   font-size: 12px;
   padding: 6px 10px;
