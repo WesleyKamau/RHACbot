@@ -286,8 +286,9 @@ body {
 }
 
 /* Allow scrolling for pages with scrollable content */
-.vanta-container:has(.scrollable-page),
-.non-stylish-container:has(.scrollable-page) {
+/* Fallback for :has() selector: use .has-scrollable-page class added via JS for older browsers */
+.vanta-container.has-scrollable-page,
+.non-stylish-container.has-scrollable-page {
   overflow-y: auto;
   overflow-x: hidden;
 }

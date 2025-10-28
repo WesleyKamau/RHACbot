@@ -123,7 +123,7 @@ export default function HomePage() {
 
             {/* Quick Info */}
             <Paragraph style={{ textAlign: 'center', fontSize: '13px', color: 'rgba(0,0,0,0.55)', lineHeight: 1.6, margin: 0 }}>
-              RHACbot sends <strong>infrequent, targeted announcements</strong> about RHAC events and updates to your floor's GroupMe.
+              RHACbot sends <strong>occasional, targeted announcements</strong> about RHAC events and updates to your floor's GroupMe.
             </Paragraph>
           </div>
         </div>
