@@ -612,7 +612,7 @@ def method_not_allowed(error):
 @app.errorhandler(500)
 def internal_error(error):
     """Handle 500 Internal Server errors."""
-    logger.error("500 Internal Server Error: %s", error)
+    logger.exception("500 Internal Server Error")
     return jsonify({'error': 'Internal server error'}), 500
 
 
