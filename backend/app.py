@@ -114,6 +114,24 @@ def init_app():
         print(f"Using in-memory chat storage (no MongoDB). Configured DB name would be: {effective_dbname}")
 
 
+# Root route - redirect to health check or provide API info
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint - provides basic API information."""
+    return jsonify({
+        'name': 'RHACbot API',
+        'version': '1.0.0',
+        'status': 'online',
+        'endpoints': {
+            'health': '/api/health',
+            'buildings': '/api/buildings',
+            'add_chat': '/api/chats/add',
+            'send_message': '/api/messages/send',
+            'auth': '/api/auth'
+        }
+    }), 200
+
+
 # Health check endpoint to wake up the backend
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -558,6 +576,31 @@ def send_message_to_group(group_id, text, image_url=None):
     except requests.RequestException as e:
         logger.exception("Network error while sending message to group %s", group_id)
         return {'success': False, 'group_id': group_id, 'status_code': None, 'error': str(e)}
+
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors - don't log for security scanners."""
+    # Only log 404s for API endpoints (ignore scanner noise)
+    if request.path.startswith('/api/'):
+        logger.warning("404 on API endpoint: %s", request.path)
+    return jsonify({'error': 'Not found'}), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    """Handle 405 Method Not Allowed errors."""
+    logger.warning("405 Method Not Allowed: %s %s", request.method, request.path)
+    return jsonify({'error': 'Method not allowed'}), 405
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 Internal Server errors."""
+    logger.error("500 Internal Server Error: %s", error)
+    return jsonify({'error': 'Internal server error'}), 500
+
 
 if __name__ == '__main__':
     # Configure debug mode via FLASK_DEBUG env var (truthy values enable debug)
