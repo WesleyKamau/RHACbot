@@ -5,12 +5,14 @@
 Make sure these are configured in your Railway project:
 
 ### 1. ADMIN_PASSWORD (REQUIRED)
-- **Purpose**: Password for authentication and message sending
+- **Purpose**: Password for authentication and message sending (used by both frontend and backend)
+- **Environment Variable Name**: `ADMIN_PASSWORD`
 - **How to set**: 
   1. Go to your Railway project
   2. Click on your backend service
   3. Go to "Variables" tab
   4. Add: `ADMIN_PASSWORD` = `your_secure_password`
+- **Important**: This MUST be set in Railway for authentication to work
 
 ### 2. GROUPME_ACCESS_TOKEN (REQUIRED)
 - **Purpose**: Access token for GroupMe API integration

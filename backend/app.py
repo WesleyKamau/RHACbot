@@ -15,6 +15,9 @@ from api_types import (
     SendMessageSuccessResponse, SendMessagePartialResponse, ApiError,
     is_valid_building_id, validate_message_body, is_valid_region_target
 )
+from dotenv import load_dotenv
+
+load_dotenv()  # Load .env for local development
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

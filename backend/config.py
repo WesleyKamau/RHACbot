@@ -20,10 +20,7 @@ class Config:
 
     GROUPME_ACCESS_TOKEN: str | None = os.getenv('GROUPME_ACCESS_TOKEN')
     SECRET_KEY: str | None = os.getenv('SECRET_KEY')
-    # Accept EXECUTIVE_PASSWORD or fallback to REACT_APP_EXECUTIVE_PASSWORD for local dev compatibility
-    EXECUTIVE_PASSWORD: str | None = os.getenv('EXECUTIVE_PASSWORD') or os.getenv('REACT_APP_EXECUTIVE_PASSWORD')
-    # ADMIN_PASSWORD is kept for backward compatibility within the app
-    ADMIN_PASSWORD: str | None = None
+    ADMIN_PASSWORD: str | None = os.getenv('ADMIN_PASSWORD')
     MONGODB_URI: str | None = os.getenv('MONGODB_URI')
     # Environment selection: 'dev' or 'prod' (or other custom values)
     ENV: str = os.getenv('ENV') or os.getenv('BACKEND_ENV') or os.getenv('FLASK_ENV') or os.getenv('NODE_ENV') or 'dev'
@@ -58,7 +55,7 @@ class Config:
         """Validate environment configuration.
 
         - Ensures required variables are present (GROUPME_ACCESS_TOKEN, MONGODB_URI).
-        - Generates secure temporary SECRET_KEY and EXECUTIVE_PASSWORD if missing
+        - Generates secure temporary SECRET_KEY and ADMIN_PASSWORD if missing
           and logs a warning. These temporaries are appropriate for development
           but should not be used in production.
 
@@ -90,17 +87,14 @@ class Config:
                 "Set SECRET_KEY in the environment for production deployments."
             )
 
-        # EXECUTIVE_PASSWORD / ADMIN_PASSWORD: generate temporary admin password if missing
-        if not cls.EXECUTIVE_PASSWORD:
+        # ADMIN_PASSWORD: generate temporary admin password if missing
+        if not cls.ADMIN_PASSWORD:
             temp_pw = secrets.token_urlsafe(16)
-            cls.EXECUTIVE_PASSWORD = temp_pw
+            cls.ADMIN_PASSWORD = temp_pw
             logger.info(
-                "EXECUTIVE_PASSWORD is not set. A temporary admin password has been generated. "
-                "Set EXECUTIVE_PASSWORD in the environment to a stable value for production."
+                "ADMIN_PASSWORD is not set. A temporary admin password has been generated. "
+                "Set ADMIN_PASSWORD in the environment to a stable value for production."
             )
-
-        # Expose ADMIN_PASSWORD attribute used by the app
-        cls.ADMIN_PASSWORD = cls.EXECUTIVE_PASSWORD
 
         return missing
 

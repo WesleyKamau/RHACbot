@@ -86,3 +86,17 @@ logconfig_dict = {
         'handlers': ['console']
     }
 }
+
+
+def on_starting(server):
+    """Called just before the master process is initialized.
+    
+    Load environment variables and initialize the app.
+    """
+    # Load .env file if it exists (for local development)
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # Initialize the Flask app (loads config, connects to DB, etc.)
+    from app import init_app
+    init_app()
