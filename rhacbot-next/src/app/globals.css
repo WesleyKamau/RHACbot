@@ -198,7 +198,7 @@ body {
     width: 100%;
     max-width: none;
     margin: 0;
-    padding: 16px 16px 0 16px; /* Remove bottom padding on mobile */
+    padding: 16px; /* Remove bottom padding on mobile */
     background-color: transparent; /* Remove card background */
     border-radius: 0; /* Remove rounded corners */
     box-shadow: none; /* Remove shadow */
@@ -212,6 +212,36 @@ body {
     display: block !important;
     height: auto !important;
   }
+  
+  /* Scrollable pages need full height for proper scrolling */
+  .scrollable-page {
+    min-height: 100% !important;
+    height: auto !important;
+    padding: 40px 16px 20px 16px !important; /* Extra top padding to prevent cutoff */
+  }
+  
+  .scrollable-page .card {
+    padding: 20px 16px !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* Wave animation for emoji */
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.wave-emoji {
+  display: inline-block;
+  animation: wave 2.5s ease-in-out;
+  transform-origin: 70% 70%;
 }
 
 .env-badge {
@@ -254,6 +284,15 @@ body {
   position: relative;
   overflow-x: hidden; /* Prevent horizontal scroll */
 }
+
+/* Allow scrolling for pages with scrollable content */
+/* Fallback for :has() selector: use .has-scrollable-page class added via JS for older browsers */
+.vanta-container.has-scrollable-page,
+.non-stylish-container.has-scrollable-page {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .non-stylish-container {
   width: 100%;
   min-height: 100vh;
@@ -286,6 +325,16 @@ body {
     bottom: 0 !important;
   }
   
+  /* Allow scrolling for pages with long content */
+  .vanta-container:has(.scrollable-page),
+  .non-stylish-container:has(.scrollable-page) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: fixed !important;
+    align-items: flex-start !important; /* Start from top on mobile too */
+    justify-content: flex-start !important;
+  }
+  
   /* Hide any Vanta canvas on mobile */
   .vanta-container canvas {
     display: none !important;
@@ -300,6 +349,14 @@ body {
     flex-shrink: 0 !important;
     max-height: 100% !important;
     overflow: visible !important;
+  }
+  
+  /* Scrollable pages need different treatment */
+  .vanta-container > div:has(.scrollable-page),
+  .non-stylish-container > div:has(.scrollable-page) {
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
   }
   
   /* Remove the grey background on mobile */
@@ -357,6 +414,12 @@ body {
   justify-content: center;
 }
 
+/* Don't center scrollable pages - align to top */
+.vanta-container:has(.scrollable-page),
+.non-stylish-container:has(.scrollable-page) {
+  align-items: flex-start !important;
+}
+
 /* The immediate child wrapper (the one with inline zIndex) should stretch to container and center its children */
 .vanta-container > div {
   display: flex;
@@ -364,6 +427,15 @@ body {
   justify-content: center;
   width: 100%;
   height: 100%;
+}
+
+/* Scrollable container should not center */
+.vanta-container > .scrollable-container,
+.non-stylish-container > .scrollable-container {
+  display: block !important;
+  align-items: flex-start !important;
+  height: auto !important;
+  min-height: 100% !important;
 }
 
 /* Remove the card's default top/bottom margins when inside the vanta wrapper so it truly centers */

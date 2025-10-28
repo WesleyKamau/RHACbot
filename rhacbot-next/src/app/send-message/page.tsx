@@ -1,11 +1,12 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Form, Button, Input, Upload, TreeSelect, Typography, message, Alert, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import buildings from '../../../data/buildings.json';
 import { sendMessage, authenticate } from '../../../lib/api';
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
 
 export default function SendMessagePage() {
@@ -18,6 +19,10 @@ export default function SendMessagePage() {
   const [sendSummary, setSendSummary] = useState<any>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const buildingsByRegion = (buildings as any[]).reduce((acc: any, b: any) => {
     const region = b.region || 'Unknown';
@@ -121,7 +126,7 @@ export default function SendMessagePage() {
 
     if (!authenticated) {
       return (
-        <div style={{ 
+        <div className="page-wrapper" style={{ 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
@@ -132,15 +137,31 @@ export default function SendMessagePage() {
           <div className="card">
             {contextHolder}
             <div className="card-inner">
-              <Title level={3} style={{ textAlign: 'center', marginBottom: 20 }}>Executive Login</Title>
+              <Title level={3} style={{ textAlign: 'center', marginBottom: 8 }}>RHAC Executive Board Login</Title>
+              <Paragraph style={{ textAlign: 'center', fontSize: 15, lineHeight: 1.6, marginBottom: 24, color: 'rgba(0,0,0,0.65)' }}>
+                Send messages to all connected residence hall GroupMe chats
+              </Paragraph>
               <Form onFinish={handleLogin} autoComplete="off" size="large">
-                <Form.Item name="password" rules={[{ required: true, message: 'Please input your password' }]}>
-                  <Input.Password autoComplete="current-password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+                <Form.Item 
+                  name="password" 
+                  rules={[{ required: true, message: 'Please input your password' }]}
+                  tooltip="Contact RHAC leadership if you need the executive password"
+                >
+                  <Input.Password autoComplete="current-password" placeholder="Executive Password" onChange={(e) => setPassword(e.target.value)} />
                 </Form.Item>
                 <Form.Item>
-                  <Button type="primary" htmlType="submit" block>Login</Button>
+                  <Button type="primary" htmlType="submit" block style={{ height: '48px', fontSize: '16px', fontWeight: 600 }}>
+                    Login
+                  </Button>
                 </Form.Item>
               </Form>
+              
+              <Paragraph style={{ textAlign: 'center', fontSize: 14, color: 'rgba(0,0,0,0.55)', marginTop: 24, lineHeight: 1.6 }}>
+                Are you an RA looking to connect your floor's GroupMe?<br />
+                <Link href="/add-chat" style={{ color: '#ba0001', fontWeight: 600 }}>
+                  Go to Add Chat →
+                </Link>
+              </Paragraph>
             </div>
           </div>
         </div>
@@ -155,7 +176,7 @@ export default function SendMessagePage() {
   );
 
       return (
-        <div style={{ 
+        <div className="page-wrapper scrollable-page" style={{ 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
@@ -171,42 +192,118 @@ export default function SendMessagePage() {
                   <Alert message={sendSummary.message || sendSummary.error} description={sendSummary.summary ? `Sent ${sendSummary.summary.sent}/${sendSummary.summary.total} — ${sendSummary.summary.failed} failed` : null} type={sendSummary.summary ? 'warning' : 'error'} showIcon action={sendSummary.failures ? (<Button size="small" onClick={() => setModalOpen(true)}>Details</Button>) : null} />
                 </div>
               )}
-              {/* <Modal title="Send failures" open={modalOpen} onCancel={() => setModalOpen(false)} footer={<Button onClick={() => setModalOpen(false)}>Close</Button>}>
-                {sendSummary && sendSummary.failures ? (
-                  <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-                    {sendSummary.failures.map((f: any) => (
-                      <div key={f.group_id} style={{ marginBottom: 8 }}>
-                        <strong>Group {f.group_id}:</strong>
-                        <div>{f.error || 'Unknown error'}</div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div>No failure details available.</div>
-                )}
-              </Modal> */}
 
-              <Title level={3} style={{ textAlign: 'center', marginBottom: 20 }}>Send Message</Title>
+              <Title level={3} style={{ textAlign: 'center', marginBottom: 8 }}>Broadcast Message</Title>
+              <Paragraph style={{ textAlign: 'center', fontSize: 15, lineHeight: 1.6, marginBottom: 24, color: 'rgba(0,0,0,0.75)' }}>
+                Send announcements to floor GroupMe chats across campus
+              </Paragraph>
+
+              {/* Info Box */}
+              <div style={{ 
+                background: '#f6f9fc', 
+                border: '1px solid #e0e6ed',
+                borderRadius: '8px', 
+                padding: '16px', 
+                marginBottom: 24
+              }}>
+                <Paragraph style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'rgba(0,0,0,0.75)' }}>
+                  <strong>How targeting works:</strong><br />
+                  • Select "All Regions" to reach every connected floor chat<br />
+                  • Select specific regions (e.g., "North") to target all buildings in that area<br />
+                  • Select individual buildings to reach only those residence halls<br />
+                  • Mix and match regions and buildings for custom targeting
+                </Paragraph>
+              </div>
+
               <Form form={form} onFinish={handleSubmit} autoComplete="off" size="large">
-                <Form.Item name="message_body" rules={[{ required: true, message: 'Please input the message body' }]}>
-                  <TextArea rows={4} placeholder="Message Body" />
+                <Form.Item 
+                  name="message_body" 
+                  label="Message"
+                  rules={[{ required: true, message: 'Please enter your message' }]}
+                  tooltip="This text will be sent to all selected floor GroupMe chats"
+                >
+                  <TextArea 
+                    rows={4} 
+                    placeholder="Type your announcement here... (e.g., 'Join us for Movie Night this Friday at 7pm in the Union!')" 
+                    showCount
+                    maxLength={1000}
+                  />
                 </Form.Item>
 
-                <Form.Item>
+                <Form.Item
+                  label="Image (Optional)"
+                  tooltip="Add a flyer, photo, or graphic to your message"
+                >
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <Upload beforeUpload={() => false} listType="picture-card" className="avatar-uploader" onChange={handleFileChange} accept="image/*" maxCount={1} showUploadList={false}>
-                      {preview ? <img src={preview} alt="avatar" style={{ width: '100%' }} /> : uploadButton}
+                    <Upload 
+                      beforeUpload={() => false} 
+                      listType="picture-card" 
+                      className="avatar-uploader" 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      maxCount={1} 
+                      showUploadList={false}
+                    >
+                      {preview ? <img src={preview} alt="Message image preview" style={{ width: '100%' }} /> : uploadButton}
                     </Upload>
                   </div>
+                  {preview && (
+                    <div style={{ textAlign: 'center', marginTop: 8 }}>
+                      <Button size="small" onClick={() => { setFile(null); setPreview(''); }}>Remove Image</Button>
+                    </div>
+                  )}
                 </Form.Item>
 
-                <Form.Item>
-                  <TreeSelect treeData={treeData} value={selectedValues} onChange={(value) => setSelectedValues(value as any)} treeCheckable={true} showCheckedStrategy={TreeSelect.SHOW_PARENT} placeholder="Please select regions or buildings" style={{ width: '100%' }} allowClear treeDefaultExpandAll treeCheckStrictly={true} labelInValue />
+                <Form.Item
+                  label="Target Audience"
+                  tooltip="Choose which residence halls will receive this message"
+                  name="targetAudience"
+                  rules={[{ required: true, message: 'Please select at least one target' }]}
+                >
+                  <TreeSelect 
+                    treeData={treeData} 
+                    value={selectedValues} 
+                    onChange={(value) => setSelectedValues(value as any)} 
+                    treeCheckable={true} 
+                    showCheckedStrategy={TreeSelect.SHOW_PARENT} 
+                    placeholder="Select regions, buildings, or both" 
+                    style={{ width: '100%' }} 
+                    allowClear 
+                    treeDefaultExpandAll 
+                    treeCheckStrictly={true} 
+                    labelInValue 
+                  />
                 </Form.Item>
 
+                {selectedValues.length > 0 && (
+                  <div style={{ 
+                    background: 'rgba(186, 0, 1, 0.05)', 
+                    border: '1px solid rgba(186, 0, 1, 0.15)',
+                    borderRadius: '8px', 
+                    padding: '12px 16px', 
+                    marginBottom: 16
+                  }}>
+                    <Paragraph style={{ margin: 0, fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>
+                      <strong>Ready to send:</strong> Your message will be delivered to {selectedValues.length} selected target{selectedValues.length > 1 ? 's' : ''}
+                    </Paragraph>
+                  </div>
+                )}
+
                 <Form.Item>
-                  <Button type="primary" htmlType="submit" block>Send Message</Button>
+                  <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    block 
+                    style={{ height: '48px', fontSize: '16px', fontWeight: 600 }}
+                    disabled={selectedValues.length === 0}
+                  >
+                    Send Message to Selected Chats
+                  </Button>
                 </Form.Item>
+
+                <Paragraph style={{ textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.55)', margin: 0, lineHeight: 1.5 }}>
+                  Messages are sent immediately and cannot be unsent (for now, I could add that later). Please review carefully before sending.
+                </Paragraph>
               </Form>
             </div>
           </div>

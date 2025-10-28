@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import AntdCompat from "./AntdCompat";
 import VantaLoader from "./VantaLoader";
@@ -22,12 +22,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "RHACbot Control Panel",
   description: "Administer and monitor RHACbot operations and settings.",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({
