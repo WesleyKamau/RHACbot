@@ -142,7 +142,7 @@ export default function AddChatPage() {
                 label="Floor Number" 
                 rules={[{ required: true, message: 'Please enter your floor number' }]}
               >
-                <Input type="number" placeholder="e.g., 3" min="1" />
+                <Input type="number" placeholder="e.g., 3" min="1" max="20" />
               </Form.Item>
 
               <Form.Item>
