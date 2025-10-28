@@ -6,6 +6,7 @@ export default function BackButton(): React.ReactElement | null {
   const router = useRouter();
   const pathname = usePathname();
   const [hasHistory, setHasHistory] = useState(false);
+  const delay = 250;
 
   useEffect(() => {
     // Check if there's browser history from within the app
@@ -22,13 +23,13 @@ export default function BackButton(): React.ReactElement | null {
       // After navigating to home, update hasHistory since now there will be history
       setTimeout(() => {
         setHasHistory(true);
-      }, 100);
+      }, delay);
     } else {
       router.back();
       // After going back, check if there's still history
       setTimeout(() => {
         setHasHistory(window.history.length > 1);
-      }, 100);
+      }, delay);
     }
   };
 
