@@ -33,10 +33,8 @@ export default function AppShell({ children }: Props) {
         ...(isMobile ? {
           // Mobile: no centering, natural flow
           width: '100%',
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center'
+          height: 'auto',
+          display: 'block'
         } : {})
       }}>
         {children}

@@ -266,14 +266,19 @@ body {
 @media (max-width: 640px) {
   .vanta-container {
     background-color: #ffffff !important;
-    min-height: 100vh !important; /* Keep viewport height for centering */
-    height: auto !important;
+    height: 100% !important; /* Use percentage instead of vh */
+    min-height: 100% !important;
     display: flex !important; /* Keep flex for centering */
     flex-direction: column !important;
     justify-content: center !important;
     align-items: stretch !important;
     padding: 0 !important;
     overflow: hidden !important; /* Prevent scrollbar */
+    position: fixed !important; /* Fix to viewport */
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
   }
   
   /* Hide any Vanta canvas on mobile */
@@ -288,19 +293,26 @@ body {
     width: 100% !important;
     min-height: auto !important;
     flex-shrink: 0 !important;
+    max-height: 100% !important;
+    overflow: visible !important;
   }
   
   /* Remove the grey background on mobile */
   .non-stylish-container {
     background-color: #ffffff;
-    min-height: 100vh !important; /* Keep viewport height for centering */
-    height: auto !important;
+    height: 100% !important; /* Use percentage instead of vh */
+    min-height: 100% !important;
     display: flex !important; /* Keep flex for centering */
     flex-direction: column !important;
     justify-content: center !important;
     align-items: stretch !important;
     overflow: hidden !important; /* Prevent scrollbar */
     padding: 0 !important; /* Remove safe-area padding here */
+    position: fixed !important; /* Fix to viewport */
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
   }
   
   /* Make child divs also not use min-height */
@@ -310,6 +322,8 @@ body {
     width: 100% !important;
     min-height: auto !important;
     flex-shrink: 0 !important;
+    max-height: 100% !important;
+    overflow: visible !important;
   }
 }
 
