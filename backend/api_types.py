@@ -95,7 +95,7 @@ class AddChatRequest:
         """Validate the request data. Returns error message if invalid, None if valid."""
         if not self.groupme_link or not self.groupme_link.strip():
             return "groupme_link is required"
-        if not isinstance(self.building_id, int) or self.building_id < 0 or self.building_id > 40:
+        if not is_valid_building_id(self.building_id):
             return "building_id must be an integer between 0 and 40"
         if not isinstance(self.floor_number, int) or self.floor_number < 1:
             return "floor_number must be a positive integer"

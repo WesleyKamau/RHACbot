@@ -204,12 +204,28 @@ def send_messages():
     if not (building_ids or regions) or not message_body:
         return jsonify({'error': 'Missing building_ids or regions, or message_body'}), 400
 
+    # Validate message body using helper function
+    message_error = validate_message_body(message_body)
+    if message_error:
+        return jsonify({'error': message_error}), 400
+
     # Determine building_ids based on regions or provided list
     if building_ids:
-        # Ensure building_ids is a list of integers
-        building_ids = [int(bid) for bid in building_ids]
+        # Ensure building_ids is a list of integers and validate them
+        try:
+            building_ids = [int(bid) for bid in building_ids]
+            # Validate each building ID
+            for bid in building_ids:
+                if not is_valid_building_id(bid):
+                    return jsonify({'error': f'Invalid building_id: {bid}'}), 400
+        except ValueError:
+            return jsonify({'error': 'building_ids must be integers'}), 400
     else:
-        # Handle regions selection
+        # Handle regions selection - validate region targets
+        for region in regions:
+            if not is_valid_region_target(region):
+                return jsonify({'error': f'Invalid region: {region}'}), 400
+        
         if 'all' in regions:
             # Use all building IDs
             building_ids = [building['id'] for building in buildings_data]
