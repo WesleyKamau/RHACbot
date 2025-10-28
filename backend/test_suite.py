@@ -15,7 +15,7 @@ This test suite covers:
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock, mock_open
+from unittest.mock import patch
 import json
 import io
 from pathlib import Path
