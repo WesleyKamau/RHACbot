@@ -52,6 +52,20 @@ html, body, #__next {
   position: relative;
 }
 
+/* Mobile: ensure html/body don't create extra height */
+@media (max-width: 640px) {
+  html, body, #__next {
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: visible !important;
+  }
+  
+  body {
+    min-height: 100vh !important;
+    height: auto !important;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -183,6 +197,15 @@ body {
     background-color: transparent; /* Remove card background */
     border-radius: 0; /* Remove rounded corners */
     box-shadow: none; /* Remove shadow */
+    min-width: auto; /* Remove min-width constraint */
+  }
+  
+  /* Remove the page wrapper's minHeight and padding on mobile */
+  .page-wrapper {
+    min-height: auto !important;
+    padding: 0 !important;
+    display: block !important;
+    height: auto !important;
   }
 }
 
@@ -243,6 +266,10 @@ body {
 @media (max-width: 640px) {
   .vanta-container {
     background-color: #ffffff !important;
+    min-height: auto !important; /* Remove fixed height on mobile */
+    height: auto !important;
+    display: block !important; /* Change from flex to block */
+    padding: 0 !important;
   }
   
   /* Hide any Vanta canvas on mobile */
@@ -250,13 +277,31 @@ body {
     display: none !important;
   }
   
+  /* Override the centered flex layout on mobile */
+  .vanta-container > div {
+    display: block !important; /* Change from flex to block */
+    height: auto !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+  
   /* Remove the grey background on mobile */
   .non-stylish-container {
     background-color: #ffffff;
-    min-height: 100vh;
-    height: auto; /* Allow content to determine height */
-    overflow-y: auto; /* Allow scrolling if needed */
+    min-height: auto !important; /* Remove 100vh constraint */
+    height: auto !important; /* Allow content to determine height */
+    display: block !important; /* Change from flex to block */
+    overflow-y: visible !important;
     overflow-x: hidden;
+    padding: 0 !important; /* Remove safe-area padding here */
+  }
+  
+  /* Make child divs also not use min-height */
+  .non-stylish-container > div {
+    display: block !important;
+    height: auto !important;
+    width: 100% !important;
+    min-height: auto !important;
   }
 }
 
@@ -377,6 +422,12 @@ body {
     font-size: 13px !important;
     margin-top: 6px !important;
     line-height: 1.4;
+  }
+  
+  /* Remove the minHeight constraint from page wrappers on mobile */
+  body > div > div > div[style*="minHeight"] {
+    min-height: auto !important;
+    padding: 0 !important;
   }
 }
 

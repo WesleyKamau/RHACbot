@@ -30,15 +30,17 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div style={{ 
-      zIndex: 100, 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center',
-      minHeight: '100vh',
-      padding: '20px 0',
-      boxSizing: 'border-box'
-    }}>
+    <div 
+      className="page-wrapper"
+      style={{ 
+        zIndex: 100, 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        minHeight: '100vh',
+        padding: '20px 0',
+        boxSizing: 'border-box'
+      }}>
       <div className="card">
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
             <div className={`env-badge ${ENV === 'development' ? 'env-dev' : 'env-prod'}`} title={`Environment: ${ENV}`}>
