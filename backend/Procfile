@@ -1,1 +1,1 @@
-web: gunicorn -w 2 -b 0.0.0.0:$PORT app:app --error-logfile - --log-level warning
+web: gunicorn -c gunicorn_config.py app:app
