@@ -494,5 +494,9 @@ if __name__ == '__main__':
     # Initialize app resources that should only run in the main process
     init_app()
 
+    # Warning: Flask's built-in server is for development only.
+    # For production, use: gunicorn app:app
     # Only enable the reloader when debug mode is explicitly requested
+    print("⚠️  WARNING: Using Flask development server. For production, use Gunicorn.")
+    print(f"   To run in production mode: gunicorn -w 4 -b {host}:{port} app:app")
     app.run(host=host, port=port, debug=debug, use_reloader=debug)
