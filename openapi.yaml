@@ -1,0 +1,342 @@
+openapi: 3.0.3
+info:
+  title: RHACbot API
+  description: |
+    Backend API for RHACbot - A GroupMe bot system for Residence Hall Advisory Council (RHAC) 
+    to manage floor chat connections and broadcast messages to residence halls.
+  version: 1.0.0
+  contact:
+    name: Wesley Kamau
+    url: https://wesleykamau.com
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+  - url: https://your-production-url.com/api
+    description: Production server
+
+tags:
+  - name: Health
+    description: Service health monitoring
+  - name: Chats
+    description: Floor chat management
+  - name: Messages
+    description: Message broadcasting
+  - name: Auth
+    description: Authentication
+  - name: Buildings
+    description: Building information
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: |
+        Simple health check endpoint to verify backend is running and responsive.
+        Useful for waking up services that spin down when idle.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Backend is healthy and responsive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  message:
+                    type: string
+                    example: Backend is healthy
+
+  /chats/add:
+    post:
+      tags:
+        - Chats
+      summary: Add floor chat
+      description: |
+        Registers a floor's GroupMe chat with RHACbot. The bot will join the chat
+        and enable message broadcasting to that floor.
+      operationId: addFloorChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - groupme_link
+                - building_id
+                - floor_number
+              properties:
+                groupme_link:
+                  type: string
+                  format: uri
+                  description: GroupMe share link for the floor chat
+                  example: https://groupme.com/join_group/12345678/abcdefgh
+                building_id:
+                  type: integer
+                  description: ID of the building from buildings.json
+                  example: 1
+                  minimum: 0
+                  maximum: 40
+                floor_number:
+                  type: integer
+                  description: Floor number in the building
+                  example: 3
+                  minimum: 1
+      responses:
+        '200':
+          description: Chat successfully added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Chat added successfully
+                  chat_id:
+                    type: string
+                    description: Unique identifier for the chat
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /messages/send:
+    post:
+      tags:
+        - Messages
+      summary: Broadcast message
+      description: |
+        Send a message to multiple floor chats. Can target all regions, specific regions,
+        or individual buildings. Requires executive board authentication.
+      operationId: sendMessage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - password
+                - message_body
+              properties:
+                password:
+                  type: string
+                  format: password
+                  description: Executive board password for authentication
+                message_body:
+                  type: string
+                  description: Text content of the message to broadcast
+                  maxLength: 1000
+                  example: Join us for Movie Night this Friday at 7pm in the Union!
+                image_file:
+                  type: string
+                  format: binary
+                  description: Optional image attachment (flyer, photo, etc.)
+                regions:
+                  type: array
+                  items:
+                    type: string
+                    enum: ["all", "North", "South", "West"]
+                  description: |
+                    Region names to target. Use "all" to target all regions,
+                    or specify one or more region names: "North", "South", "West".
+                    Can send multiple regions.
+                  example: ["North", "South"]
+                building_ids:
+                  type: array
+                  items:
+                    type: string
+                    pattern: '^\d+$'
+                  description: |
+                    Specific building IDs to target (0-40). Can be combined with regions.
+                    Must be provided as strings even though they represent integer IDs.
+                  example: ["1", "5", "12"]
+      responses:
+        '200':
+          description: All messages sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Messages sent successfully
+                  summary:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 10
+                      sent:
+                        type: integer
+                        example: 10
+                      failed:
+                        type: integer
+                        example: 0
+        '207':
+          description: Some messages failed to send
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Some messages failed
+                  summary:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      sent:
+                        type: integer
+                      failed:
+                        type: integer
+                  failures:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        chat_id:
+                          type: string
+                        building:
+                          type: string
+                        floor:
+                          type: integer
+                        error:
+                          type: string
+        '400':
+          description: Invalid request or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate executive board member
+      description: |
+        Verify executive board password for accessing message broadcasting features.
+      operationId: authenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  format: password
+                  description: Executive board password
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Authenticated
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Incorrect password
+
+  /buildings:
+    get:
+      tags:
+        - Buildings
+      summary: Get buildings list
+      description: |
+        Retrieve list of all buildings with their IDs, names, and regions.
+        Used for display in UI and validation.
+      operationId: getBuildings
+      responses:
+        '200':
+          description: List of buildings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      minimum: 0
+                      maximum: 40
+                      example: 1
+                    name:
+                      type: string
+                      example: Smith Hall
+                    address:
+                      type: string
+                      example: "123 Main Street"
+                    region:
+                      type: string
+                      example: North
+                      enum: [North, South, West]
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message describing what went wrong
+          example: Invalid request data
+        details:
+          type: string
+          description: Additional error details (optional)
+
+  securitySchemes:
+    PasswordAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Executive board password sent in request body for authentication.
+        Not a traditional bearer token - password is sent with each request.
+
+security: []

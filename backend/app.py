@@ -9,6 +9,12 @@ from config import Config
 import os
 from pathlib import Path
 from pymongo import MongoClient, errors as pymongo_errors
+from api_types import (
+    HealthCheckResponse, AddChatRequest, AddChatResponse, AuthRequest,
+    AuthResponse, AuthErrorResponse, MessageSendSummary, MessageFailure,
+    SendMessageSuccessResponse, SendMessagePartialResponse, ApiError,
+    is_valid_building_id, validate_message_body, is_valid_region_target
+)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -108,52 +114,77 @@ def init_app():
         print(f"Using in-memory chat storage (no MongoDB). Configured DB name would be: {effective_dbname}")
 
 
+# Health check endpoint to wake up the backend
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Simple health check endpoint to verify backend is running."""
+    response = HealthCheckResponse(status="ok", message="Backend is healthy")
+    return jsonify(response.to_dict()), 200
+
+
 # Endpoint to add a floor chat
 @app.route('/api/chats/add', methods=['POST'])
 def add_floor_chat():
-    data = request.json
-    groupme_link = data.get('groupme_link')
-    building_id = data.get('building_id')
-    floor_number = data.get('floor_number')
+    try:
+        # Parse and validate request
+        chat_request = AddChatRequest.from_dict(request.json or {})
+        validation_error = chat_request.validate()
+        if validation_error:
+            error_response = ApiError(error=validation_error)
+            return jsonify(error_response.to_dict()), 400
 
-    # Log payload at INFO level for observability (avoid bare prints)
-    logger.info("add_floor_chat payload: %s", data)
+        # Log payload at INFO level for observability
+        logger.info("add_floor_chat payload: groupme_link=%s, building_id=%s, floor_number=%s",
+                    chat_request.groupme_link, chat_request.building_id, chat_request.floor_number)
 
-    # Validate required fields. Accept building_id == 0 (explicit None check).
-    if not groupme_link or building_id is None or floor_number is None:
-        return jsonify({'error': 'Missing groupme_link, building_id, or floor_number'}), 400
+        # Extract group_id and share_token from the GroupMe link
+        group_info = extract_group_id_and_token_from_link(chat_request.groupme_link)
+        if not group_info:
+            error_response = ApiError(error='Invalid GroupMe link')
+            return jsonify(error_response.to_dict()), 400
 
-    # Extract group_id and share_token from the GroupMe link
-    group_info = extract_group_id_and_token_from_link(groupme_link)
-    if not group_info:
-        return jsonify({'error': 'Invalid GroupMe link'}), 400
+        group_id, share_token = group_info
+        print(f'Group ID: {group_id}, Share Token: {share_token}')
 
-    group_id, share_token = group_info
+        # Check if the chat already exists in the database or fallback storage
+        if chats_collection is not None:
+            existing_chat = chats_collection.find_one({
+                'groupme_id': group_id,
+                'env': app.config.get('APP_ENV')
+            })
+        else:
+            existing_chat = next((c for c in _fallback_chats 
+                                if c['groupme_id'] == group_id 
+                                and c.get('env') == app.config.get('APP_ENV')), None)
 
-    print(f'Group ID: {group_id}, Share Token: {share_token}')
+        if existing_chat:
+            logger.info("GroupMe ID already exists in storage: %s", group_id)
+            error_response = ApiError(error='Chat already exists')
+            return jsonify(error_response.to_dict()), 400
 
-    # Check if the chat already exists in the database or fallback storage
-    if chats_collection is not None:
-        # Only consider chats for the active environment
-        existing_chat = chats_collection.find_one({'groupme_id': group_id, 'env': app.config.get('APP_ENV')})
-    else:
-        existing_chat = next((c for c in _fallback_chats if c['groupme_id'] == group_id and c.get('env') == app.config.get('APP_ENV')), None)
+        # Join the group using the GroupMe API
+        joined = join_group(group_id, share_token)
+        if not joined:
+            error_response = ApiError(error='Failed to join the GroupMe group')
+            return jsonify(error_response.to_dict()), 500
 
-    if existing_chat:
-        logger.info("GroupMe ID already exists in storage: %s", group_id)
-        return jsonify({'error': 'Chat already exists'}), 400
+        # Add the chat to the database
+        chat = add_chat(group_id, chat_request.building_id, chat_request.floor_number)
+        if chat is None:
+            error_response = ApiError(error='Failed to add chat')
+            return jsonify(error_response.to_dict()), 500
 
-    # Join the group using the GroupMe API
-    joined = join_group(group_id, share_token)
-    if not joined:
-        return jsonify({'error': 'Failed to join the GroupMe group'}), 500
+        # Return success response
+        success_response = AddChatResponse(
+            message='Chat added successfully',
+            chat_id=str(chat.get('_id', ''))
+        )
+        return jsonify(success_response.to_dict()), 200
 
-    # Add the chat to the database
-    chat = add_chat(group_id, building_id, floor_number)
-    if chat is None:
-        return jsonify({'error': 'Failed to add chat'}), 500
-
-    return jsonify({'message': 'Chat added successfully', 'chat': chat}), 200
+    except Exception as e:
+        logger.exception("Error in add_floor_chat")
+        error_response = ApiError(error='Internal server error', details=str(e))
+        return jsonify(error_response.to_dict()), 500
 
 # Endpoint to send messages to chats based on building IDs or regions
 @app.route('/api/messages/send', methods=['POST'])
@@ -173,12 +204,28 @@ def send_messages():
     if not (building_ids or regions) or not message_body:
         return jsonify({'error': 'Missing building_ids or regions, or message_body'}), 400
 
+    # Validate message body using helper function
+    message_error = validate_message_body(message_body)
+    if message_error:
+        return jsonify({'error': message_error}), 400
+
     # Determine building_ids based on regions or provided list
     if building_ids:
-        # Ensure building_ids is a list of integers
-        building_ids = [int(bid) for bid in building_ids]
+        # Ensure building_ids is a list of integers and validate them
+        try:
+            building_ids = [int(bid) for bid in building_ids]
+            # Validate each building ID
+            for bid in building_ids:
+                if not is_valid_building_id(bid):
+                    return jsonify({'error': f'Invalid building_id: {bid}'}), 400
+        except ValueError:
+            return jsonify({'error': 'building_ids must be integers'}), 400
     else:
-        # Handle regions selection
+        # Handle regions selection - validate region targets
+        for region in regions:
+            if not is_valid_region_target(region):
+                return jsonify({'error': f'Invalid region: {region}'}), 400
+        
         if 'all' in regions:
             # Use all building IDs
             building_ids = [building['id'] for building in buildings_data]
@@ -241,18 +288,47 @@ def send_messages():
 
     total = overall_successes + overall_failures
     if total == 0:
-        return jsonify({'message': 'No group chats found', 'per_building': per_building_results}), 404
+        error_response = ApiError(error='No group chats found')
+        return jsonify(error_response.to_dict()), 404
+
+    # Build summary
+    summary = MessageSendSummary(total=total, sent=overall_successes, failed=overall_failures)
 
     if overall_failures == 0:
-        return jsonify({'message': 'All messages sent successfully', 'per_building': per_building_results}), 200
+        # All successful
+        response = SendMessageSuccessResponse(
+            message='All messages sent successfully',
+            summary=summary
+        )
+        return jsonify(response.to_dict()), 200
     elif overall_successes > 0:
-        return jsonify({
-            'message': 'Some messages were sent successfully',
-            'summary': {'total': total, 'sent': overall_successes, 'failed': overall_failures},
-            'per_building': per_building_results,
-        }), 207
+        # Partial success - collect failures
+        failures = []
+        for building_entry in per_building_results:
+            building_name = building_entry.get('building_name', 'Unknown')
+            for result in building_entry.get('results', []):
+                if not result.get('success'):
+                    failure = MessageFailure(
+                        chat_id=result.get('group_id', ''),
+                        building=building_name,
+                        floor=result.get('floor_number', 0),
+                        error=result.get('error', 'Unknown error')
+                    )
+                    failures.append(failure)
+        
+        response = SendMessagePartialResponse(
+            message='Some messages were sent successfully',
+            summary=summary,
+            failures=failures
+        )
+        return jsonify(response.to_dict()), 207
     else:
-        return jsonify({'message': 'No messages were sent', 'per_building': per_building_results}), 502
+        # All failed
+        error_response = ApiError(
+            error='No messages were sent',
+            details=f'{total} attempts failed'
+        )
+        return jsonify(error_response.to_dict()), 502
 
 
 @app.route('/api/buildings', methods=['GET'])
@@ -262,14 +338,29 @@ def get_buildings():
 
 @app.route('/api/auth', methods=['POST'])
 def auth():
-    data = request.get_json() or {}
-    password = data.get('password') or request.form.get('password')
-    if not password:
-        return jsonify({'error': 'Missing password'}), 400
-    if password == app.config.get('ADMIN_PASSWORD'):
-        return jsonify({'message': 'Authenticated'}), 200
-    else:
-        return jsonify({'error': 'Unauthorized'}), 401
+    try:
+        data = request.get_json() or {}
+        auth_request = AuthRequest.from_dict(data)
+        
+        if not auth_request.password:
+            # Also check form data as fallback
+            auth_request.password = request.form.get('password', '')
+        
+        if not auth_request.password:
+            error_response = AuthErrorResponse(error='Missing password')
+            return jsonify(error_response.to_dict()), 400
+        
+        if auth_request.password == app.config.get('ADMIN_PASSWORD'):
+            success_response = AuthResponse(message='Authenticated')
+            return jsonify(success_response.to_dict()), 200
+        else:
+            error_response = AuthErrorResponse(error='Unauthorized')
+            return jsonify(error_response.to_dict()), 401
+            
+    except Exception as e:
+        logger.exception("Error in auth")
+        error_response = AuthErrorResponse(error='Authentication failed')
+        return jsonify(error_response.to_dict()), 500
 
 def upload_image_to_groupme(image_file):
     url = 'https://image.groupme.com/pictures'
@@ -484,5 +575,9 @@ if __name__ == '__main__':
     # Initialize app resources that should only run in the main process
     init_app()
 
+    # Warning: Flask's built-in server is for development only.
+    # For production, use: gunicorn app:app
     # Only enable the reloader when debug mode is explicitly requested
+    print("⚠️  WARNING: Using Flask development server. For production, use Gunicorn.")
+    print(f"   To run in production mode: gunicorn -w 4 -b {host}:{port} app:app")
     app.run(host=host, port=port, debug=debug, use_reloader=debug)
