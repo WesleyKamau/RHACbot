@@ -396,11 +396,13 @@ def auth():
             error_response = AuthErrorResponse(error='Missing password')
             return jsonify(error_response.to_dict()), 400
         
+        
         if auth_request.password == app.config.get('ADMIN_PASSWORD'):
             success_response = AuthResponse(message='Authenticated')
             return jsonify(success_response.to_dict()), 200
         else:
             error_response = AuthErrorResponse(error='Unauthorized')
+            print('entered password: ', auth_request.password, "correct password:", app.config.get('ADMIN_PASSWORD'))
             return jsonify(error_response.to_dict()), 401
             
     except Exception as e:
