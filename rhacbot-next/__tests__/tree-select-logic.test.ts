@@ -124,8 +124,7 @@ function handleTreeSelectChange(newValue: any[], treeData: any[]) {
           value: regionValue, 
           label: regionNode?.title || regionValue 
         });
-        resultValues.length = 0;
-        resultValues.push(...filteredValues);
+        resultValues.splice(0, resultValues.length, ...filteredValues);
       }
     }
   });
