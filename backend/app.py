@@ -397,12 +397,20 @@ def auth():
             return jsonify(error_response.to_dict()), 400
         
         
-        if auth_request.password == app.config.get('ADMIN_PASSWORD'):
+        admin_password = app.config.get('ADMIN_PASSWORD')
+        
+        # Check if ADMIN_PASSWORD is configured
+        if not admin_password:
+            logger.error("ADMIN_PASSWORD environment variable is not configured")
+            error_response = AuthErrorResponse(error='Authentication not configured')
+            return jsonify(error_response.to_dict()), 500
+        
+        if auth_request.password == admin_password:
             success_response = AuthResponse(message='Authenticated')
             return jsonify(success_response.to_dict()), 200
         else:
             error_response = AuthErrorResponse(error='Unauthorized')
-            print('entered password: ', auth_request.password, "correct password:", app.config.get('ADMIN_PASSWORD'))
+            logger.warning("Failed authentication attempt")
             return jsonify(error_response.to_dict()), 401
             
     except Exception as e:

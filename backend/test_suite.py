@@ -129,6 +129,24 @@ class TestAuthEndpoint(unittest.TestCase):
         
         data = json.loads(response.data)
         self.assertEqual(data['error'], 'Missing password')
+        
+    def test_auth_not_configured(self):
+        """Test authentication when ADMIN_PASSWORD is not configured"""
+        # Temporarily unset ADMIN_PASSWORD
+        original_password = self.app.config.get('ADMIN_PASSWORD')
+        self.app.config['ADMIN_PASSWORD'] = None
+        
+        try:
+            response = self.client.post('/api/auth',
+                                       json={'password': 'any_password'},
+                                       content_type='application/json')
+            self.assertEqual(response.status_code, 500)
+            
+            data = json.loads(response.data)
+            self.assertEqual(data['error'], 'Authentication not configured')
+        finally:
+            # Restore original password
+            self.app.config['ADMIN_PASSWORD'] = original_password
 
 
 class TestAddChatEndpoint(unittest.TestCase):
