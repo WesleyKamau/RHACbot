@@ -121,12 +121,19 @@ export default function SendMessagePage() {
 
     if (!authenticated) {
       return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          padding: '20px 0',
+          boxSizing: 'border-box'
+        }}>
           <div className="card">
             {contextHolder}
-            <div className="card-inner" style={{ padding: 20 }}>
-              <Title level={3} style={{ textAlign: 'center' }}>Executive Login</Title>
-              <Form onFinish={handleLogin} autoComplete="off">
+            <div className="card-inner">
+              <Title level={3} style={{ textAlign: 'center', marginBottom: 20 }}>Executive Login</Title>
+              <Form onFinish={handleLogin} autoComplete="off" size="large">
                 <Form.Item name="password" rules={[{ required: true, message: 'Please input your password' }]}>
                   <Input.Password autoComplete="current-password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
                 </Form.Item>
@@ -148,12 +155,19 @@ export default function SendMessagePage() {
   );
 
       return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          padding: '20px 0',
+          boxSizing: 'border-box'
+        }}>
           <div className="card">
             {contextHolder}
             <div className="card-inner">
               {sendSummary && (
-                <div style={{ marginBottom: 12 }}>
+                <div style={{ marginBottom: 16 }}>
                   <Alert message={sendSummary.message || sendSummary.error} description={sendSummary.summary ? `Sent ${sendSummary.summary.sent}/${sendSummary.summary.total} — ${sendSummary.summary.failed} failed` : null} type={sendSummary.summary ? 'warning' : 'error'} showIcon action={sendSummary.failures ? (<Button size="small" onClick={() => setModalOpen(true)}>Details</Button>) : null} />
                 </div>
               )}
@@ -172,8 +186,8 @@ export default function SendMessagePage() {
                 )}
               </Modal> */}
 
-              <Title level={3} style={{ textAlign: 'center' }}>Send Message</Title>
-              <Form form={form} onFinish={handleSubmit} autoComplete="off">
+              <Title level={3} style={{ textAlign: 'center', marginBottom: 20 }}>Send Message</Title>
+              <Form form={form} onFinish={handleSubmit} autoComplete="off" size="large">
                 <Form.Item name="message_body" rules={[{ required: true, message: 'Please input the message body' }]}>
                   <TextArea rows={4} placeholder="Message Body" />
                 </Form.Item>
