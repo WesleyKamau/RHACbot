@@ -22,6 +22,8 @@ export async function healthCheck(): Promise<ApiResponse<HealthCheckResponse>> {
   try {
     const res = await fetch(`${API_URL}/health`, {
       method: 'GET',
+      mode: 'cors',
+      credentials: 'include',
     });
     const data = await res.json().catch(() => ({ status: 'error', message: 'Failed to parse response' }));
     return { status: res.status, data };
@@ -49,6 +51,8 @@ export async function getBuildings(): Promise<Building[]> {
 export async function addChat(payload: AddChatRequest): Promise<ApiResponse<AddChatResponse>> {
   const res = await fetch(`${API_URL}/chats/add`, {
     method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -64,6 +68,8 @@ export async function addChat(payload: AddChatRequest): Promise<ApiResponse<AddC
 export async function sendMessage(formData: FormData): Promise<ApiResponse<SendMessageResponse>> {
   const res = await fetch(`${API_URL}/messages/send`, {
     method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
     body: formData,
   });
   const data = await res.json().catch(() => ({ error: 'Failed to parse response' }));
@@ -78,6 +84,8 @@ export async function sendMessage(formData: FormData): Promise<ApiResponse<SendM
 export async function authenticate(password: string): Promise<ApiResponse<AuthResponse | AuthErrorResponse>> {
   const res = await fetch(`${API_URL}/auth`, {
     method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password } as AuthRequest),
   });
