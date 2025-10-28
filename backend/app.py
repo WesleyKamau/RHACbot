@@ -16,20 +16,37 @@ from api_types import (
     is_valid_building_id, validate_message_body, is_valid_region_target
 )
 
+import re
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
+
+# CORS origin validation function
+def is_allowed_origin(origin):
+    """Check if the origin is allowed to make CORS requests"""
+    allowed_patterns = [
+        r'^https://rhacbot\.wesleykamau\.com$',
+        r'^https://www\.rhacbot\.wesleykamau\.com$',
+        r'^https://rhacbot-.*\.vercel\.app$',  # Vercel preview deployments
+        r'^https://.*-wesley-kamaus-projects\.vercel\.app$',  # Vercel project URLs
+        r'^http://localhost:3000$',
+        r'^http://localhost:3001$'
+    ]
+    
+    if origin:
+        for pattern in allowed_patterns:
+            if re.match(pattern, origin):
+                return True
+    return False
+
+
 # Configure CORS at module level so it works with Gunicorn
 # Must be done BEFORE init_app() and BEFORE routes are defined
 CORS(app, 
-     origins=[
-         "https://rhacbot.wesleykamau.com",
-         "https://www.rhacbot.wesleykamau.com",
-         "http://localhost:3000",
-         "http://localhost:3001"
-     ],
+     origins=is_allowed_origin,  # Use function for dynamic origin checking
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
      allow_headers=["Content-Type", "Authorization", "Accept"],
      supports_credentials=True,
