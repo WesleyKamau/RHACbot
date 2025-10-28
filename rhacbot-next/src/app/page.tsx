@@ -50,22 +50,81 @@ export default function HomePage() {
 
           <div className="homepage-container">
             <img src={'/rhac-logo.png'} alt="RHAC Logo" className="logo" />
-            <Title level={2} style={{ textAlign: 'center', fontSize: 'clamp(22px, 5vw, 28px)' }}>Welcome to the RHACbot Control Panel!</Title>
-            <Paragraph style={{ textAlign: 'center', fontSize: 'clamp(14px, 3vw, 16px)', lineHeight: 1.6 }}>
-              This platform allows RHAC members to manage floor chats and send messages to specific buildings or regions. You can add new floor chats or send announcements to residents.
+            <Title level={2} style={{ textAlign: 'center', fontSize: 'clamp(24px, 5vw, 32px)', marginBottom: 8 }}>
+              Welcome, RAs! 👋
+            </Title>
+            <Paragraph style={{ textAlign: 'center', fontSize: 'clamp(15px, 3vw, 17px)', lineHeight: 1.6, marginBottom: 24, color: 'rgba(0,0,0,0.75)' }}>
+              Connect your floor's GroupMe to RHAC
             </Paragraph>
 
-            <div className="button-group">
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Button type="primary" size="large" onClick={() => router.push('/add-chat')} block>Add Floor Chat</Button>
-                <Paragraph className="btn-desc" style={{ marginTop: 8, marginBottom: 0 }}>For RA's</Paragraph>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Button type="primary" size="large" onClick={() => router.push('/send-message')} block>Send Message</Button>
-                <Paragraph className="btn-desc" style={{ marginTop: 8, marginBottom: 0 }}>For RHAC executive board</Paragraph>
-              </div>
+            {/* Primary CTA for RAs */}
+            <div style={{ marginBottom: 32 }}>
+              <Button 
+                type="primary" 
+                size="large" 
+                onClick={() => router.push('/add-chat')} 
+                block
+                style={{ height: 'auto', padding: '16px 24px', fontSize: '18px', fontWeight: 600 }}
+              >
+                Add My Floor's GroupMe
+              </Button>
+              <Paragraph style={{ textAlign: 'center', marginTop: 12, fontSize: '14px', color: 'rgba(0,0,0,0.65)', lineHeight: 1.5 }}>
+                Get your residents connected to RHAC event announcements
+              </Paragraph>
             </div>
+
+            {/* Info Box */}
+            <div style={{ 
+              background: 'rgba(186, 0, 1, 0.05)', 
+              border: '1px solid rgba(186, 0, 1, 0.15)',
+              borderRadius: '12px', 
+              padding: '20px', 
+              marginBottom: 24,
+              textAlign: 'left'
+            }}>
+              <Title level={4} style={{ fontSize: '16px', marginBottom: 12, color: '#ba0001' }}>
+                What you need:
+              </Title>
+              <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px', lineHeight: 1.8 }}>
+                <li>A GroupMe share link for your floor chat</li>
+                <li>Your building name</li>
+                <li>Your floor number</li>
+              </ul>
+              <Paragraph style={{ margin: '12px 0 0 0', fontSize: '13px', color: 'rgba(0,0,0,0.65)', fontStyle: 'italic' }}>
+                Not sure how to create a share link?{' '}
+                <a 
+                  href="https://support.microsoft.com/en-us/office/how-do-i-create-a-share-link-in-groupme-47ded1b7-e92d-4620-b3ff-b3d3740db761" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: '#ba0001', fontWeight: 600 }}
+                >
+                  See instructions
+                </a>
+              </Paragraph>
+            </div>
+
+            {/* Secondary Actions */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: 20, flexWrap: 'wrap' }}>
+              <Button 
+                size="large" 
+                onClick={() => router.push('/learn-more')} 
+                style={{ flex: 1, minWidth: '140px' }}
+              >
+                Learn More
+              </Button>
+              <Button 
+                size="large" 
+                onClick={() => router.push('/send-message')} 
+                style={{ flex: 1, minWidth: '140px' }}
+              >
+                Executive Login
+              </Button>
+            </div>
+
+            {/* Quick Info */}
+            <Paragraph style={{ textAlign: 'center', fontSize: '13px', color: 'rgba(0,0,0,0.55)', lineHeight: 1.6, margin: 0 }}>
+              RHACbot sends <strong>infrequent, targeted announcements</strong> about RHAC events and updates to your floor's GroupMe.
+            </Paragraph>
           </div>
         </div>
     </div>
