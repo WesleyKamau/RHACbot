@@ -12,7 +12,9 @@ import type {
   AuthErrorResponse,
   SendMessageResponse,
   MessageSendSummary,
-  TreeSelectNode 
+  TreeSelectNode,
+  TreeSelectValue,
+  TreeSelectChangeValue
 } from '../../../lib/types';
 import { isApiError, hasMessageFailures } from '../../../lib/types';
 
@@ -23,7 +25,7 @@ export default function SendMessagePage() {
   const [form] = Form.useForm();
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
-  const [selectedValues, setSelectedValues] = useState<any[]>([]);
+  const [selectedValues, setSelectedValues] = useState<TreeSelectValue[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
   const [sendSummary, setSendSummary] = useState<SendMessageResponse | null>(null);
@@ -61,9 +63,11 @@ export default function SendMessagePage() {
   }];
 
   // Handle tree select change with parent-child logic
-  const handleTreeSelectChange = (newValue: any[]) => {
-    const valueSet = new Set(newValue.map((v: any) => v.value || v));
-    const resultValues: any[] = [];
+  const handleTreeSelectChange = (newValue: TreeSelectChangeValue[]) => {
+    const valueSet = new Set(newValue.map((v: TreeSelectChangeValue) => {
+      return typeof v === 'string' ? v : v.value;
+    }));
+    const resultValues: TreeSelectValue[] = [];
 
     // Build maps for the three-level hierarchy
     const allRegionsNode = treeData[0];
@@ -189,8 +193,8 @@ export default function SendMessagePage() {
     const regions: string[] = [];
     const buildingIds: string[] = [];
 
-    selectedValues.forEach((valueObj: any) => {
-      const value = valueObj.value || valueObj;
+    selectedValues.forEach((valueObj: TreeSelectValue) => {
+      const value = valueObj.value;
       const strValue = String(value);
       if (strValue.startsWith('region-')) regions.push(strValue.replace('region-', ''));
       else buildingIds.push(strValue);
