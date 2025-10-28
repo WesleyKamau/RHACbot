@@ -41,7 +41,7 @@ export default function SendMessagePage() {
     return acc;
   }, {} as Record<string, Building[]>);
 
-  const treeData: TreeSelectNode[] = Object.entries(buildingsByRegion).map(([regionName, regionBuildings]) => ({
+  const regionNodes: TreeSelectNode[] = Object.entries(buildingsByRegion).map(([regionName, regionBuildings]) => ({
     title: regionName,
     value: `region-${regionName}`,
     selectable: true,
@@ -52,42 +52,69 @@ export default function SendMessagePage() {
     })),
   }));
 
-  // Keep an "All Regions" root option (children empty array to satisfy TreeSelect typing)
-  treeData.unshift({ title: 'All Regions', value: 'region-all', selectable: true, children: [] });
+  // Make "All Regions" the parent of all regions
+  const treeData: TreeSelectNode[] = [{
+    title: 'All Regions',
+    value: 'region-all',
+    selectable: true,
+    children: regionNodes
+  }];
 
   // Handle tree select change with parent-child logic
   const handleTreeSelectChange = (newValue: any[]) => {
     const valueSet = new Set(newValue.map((v: any) => v.value || v));
     const resultValues: any[] = [];
 
-    // Build a map of region to its buildings
+    // Build maps for the three-level hierarchy
+    const allRegionsNode = treeData[0];
+    const allRegionValue = 'region-all';
+    const allRegions: string[] = [];
     const regionToBuildings = new Map<string, string[]>();
-    treeData.forEach((node) => {
-      if (node.children && node.children.length > 0) {
-        const buildingIds = node.children.map((child) => String(child.value));
-        regionToBuildings.set(String(node.value), buildingIds);
+    
+    // Map each region to its buildings
+    allRegionsNode.children?.forEach((regionNode) => {
+      const regionValue = String(regionNode.value);
+      allRegions.push(regionValue);
+      
+      if (regionNode.children && regionNode.children.length > 0) {
+        const buildingIds = regionNode.children.map((child) => String(child.value));
+        regionToBuildings.set(regionValue, buildingIds);
       }
     });
+
+    // Check if "All Regions" is selected
+    if (valueSet.has(allRegionValue)) {
+      // If all regions selected, just return that
+      resultValues.push({ value: allRegionValue, label: 'All Regions' });
+      setSelectedValues(resultValues);
+      return;
+    }
+
+    // Check if all individual regions are selected (should auto-select "All Regions")
+    const allRegionsSelected = allRegions.every((r) => valueSet.has(r));
+    if (allRegionsSelected && allRegions.length > 0) {
+      resultValues.push({ value: allRegionValue, label: 'All Regions' });
+      setSelectedValues(resultValues);
+      return;
+    }
 
     // Process each selected value
     valueSet.forEach((value) => {
       const strValue = String(value);
       
-      // If it's a region
-      if (strValue.startsWith('region-')) {
+      // If it's a region (but not "all")
+      if (strValue.startsWith('region-') && strValue !== allRegionValue) {
         const buildings = regionToBuildings.get(strValue) || [];
         
-        // Check if all children are selected
-        const allChildrenSelected = buildings.every((bid) => valueSet.has(bid));
+        // If region is explicitly selected, keep it regardless of children
+        // OR if all children are selected, keep the region
+        const allChildrenSelected = buildings.length > 0 && buildings.every((bid) => valueSet.has(bid));
         
-        if (allChildrenSelected || buildings.length === 0) {
-          // Keep the region, remove individual buildings from the set
-          resultValues.push({ value: strValue, label: treeData.find((n) => n.value === strValue)?.title || strValue });
-          buildings.forEach((bid) => valueSet.delete(bid));
-        } else {
-          // Not all children selected, don't include the region
-          // The buildings will be added individually below
-        }
+        // Keep the region if it's selected directly or all children are selected
+        const regionNode = allRegionsNode.children?.find((n) => n.value === strValue);
+        resultValues.push({ value: strValue, label: regionNode?.title || strValue });
+        // Remove children from valueSet so they don't appear individually
+        buildings.forEach((bid) => valueSet.delete(bid));
       }
     });
 
@@ -97,15 +124,15 @@ export default function SendMessagePage() {
       if (!strValue.startsWith('region-')) {
         // Find the building name
         let buildingName = strValue;
-        treeData.forEach((node) => {
-          const child = node.children?.find((c) => String(c.value) === strValue);
+        allRegionsNode.children?.forEach((regionNode) => {
+          const child = regionNode.children?.find((c) => String(c.value) === strValue);
           if (child) buildingName = child.title || strValue;
         });
         resultValues.push({ value: strValue, label: buildingName });
       }
     });
 
-    // Check if any region should be auto-selected because all its children are selected
+    // Check if any region should be auto-selected because all its buildings are selected
     regionToBuildings.forEach((buildings, regionValue) => {
       const regionInResult = resultValues.some((v) => v.value === regionValue);
       if (!regionInResult && buildings.length > 0) {
@@ -115,9 +142,10 @@ export default function SendMessagePage() {
         if (allChildrenSelected) {
           // Remove individual buildings and add the region
           const filteredValues = resultValues.filter((v) => !buildings.includes(v.value));
+          const regionNode = allRegionsNode.children?.find((n) => n.value === regionValue);
           filteredValues.push({ 
             value: regionValue, 
-            label: treeData.find((n) => n.value === regionValue)?.title || regionValue 
+            label: regionNode?.title || regionValue 
           });
           resultValues.length = 0;
           resultValues.push(...filteredValues);
