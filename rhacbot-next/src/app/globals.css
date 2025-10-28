@@ -193,7 +193,7 @@ body {
     width: 100%;
     max-width: none;
     margin: 0;
-    padding: 20px 16px;
+    padding: 16px 16px 0 16px; /* Remove bottom padding on mobile */
     background-color: transparent; /* Remove card background */
     border-radius: 0; /* Remove rounded corners */
     box-shadow: none; /* Remove shadow */
@@ -386,7 +386,8 @@ body {
 /* Responsive: mobile-friendly layout adjustments */
 @media (max-width: 640px) {
   .homepage-container {
-    padding: 20px 16px;
+    padding: 16px 16px 0 16px; /* Remove bottom padding on mobile */
+    margin: 0;
   }
 
   .logo {
@@ -398,6 +399,7 @@ body {
     flex-direction: column;
     gap: 12px;
     margin-top: 20px;
+    margin-bottom: 0; /* Remove bottom margin */
   }
 
   .button-group > div {
@@ -421,6 +423,7 @@ body {
     color: rgba(0,0,0,0.65);
     font-size: 13px !important;
     margin-top: 6px !important;
+    margin-bottom: 0 !important; /* Remove bottom margin */
     line-height: 1.4;
   }
   
@@ -428,6 +431,20 @@ body {
   body > div > div > div[style*="minHeight"] {
     min-height: auto !important;
     padding: 0 !important;
+  }
+  
+  /* Remove extra spacing from Typography components on mobile */
+  .ant-typography {
+    margin-bottom: 12px !important;
+  }
+  
+  .ant-typography:last-child {
+    margin-bottom: 0 !important;
+  }
+  
+  /* Ensure button groups don't add extra bottom space */
+  .button-group > div:last-child {
+    margin-bottom: 0 !important;
   }
 }
 
