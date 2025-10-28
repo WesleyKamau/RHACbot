@@ -2,6 +2,19 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
 const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || '/api';
 const API_URL = `${API_BASE}${API_PREFIX}`;
 
+export async function healthCheck() {
+  try {
+    const res = await fetch(`${API_URL}/health`, {
+      method: 'GET',
+    });
+    const data = await res.json().catch(() => ({}));
+    return { status: res.status, data };
+  } catch (error) {
+    console.warn('Health check failed:', error);
+    return { status: 500, data: { error: 'Health check failed' } };
+  }
+}
+
 export async function getBuildings() {
   const res = await fetch('/data/buildings.json');
   if (!res.ok) throw new Error('Failed to load buildings');

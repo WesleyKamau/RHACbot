@@ -108,6 +108,16 @@ def init_app():
         print(f"Using in-memory chat storage (no MongoDB). Configured DB name would be: {effective_dbname}")
 
 
+# Health check endpoint to wake up the backend
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Simple health check endpoint to verify backend is running."""
+    return jsonify({
+        'status': 'ok',
+        'message': 'Backend is healthy'
+    }), 200
+
+
 # Endpoint to add a floor chat
 @app.route('/api/chats/add', methods=['POST'])
 def add_floor_chat():
