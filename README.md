@@ -123,6 +123,8 @@ graph TD
     C[🏠 Resident Advisor] -->|Submit GroupMe Link| B
     B -->|API Requests| D[Flask Backend]
     D -->|Store Data| E[(MongoDB)]
+    D -->|Upload Images| H[GroupMe Image API]
+    H -->|Image URL| D
     D -->|Send Messages| F[GroupMe API]
     F -->|Deliver| G[Floor Group Chats]
     
@@ -133,6 +135,7 @@ graph TD
     style E fill:#13aa52,stroke:#333,stroke-width:2px,color:#fff
     style F fill:#00aff0,stroke:#333,stroke-width:2px,color:#000
     style G fill:#faad14,stroke:#333,stroke-width:2px,color:#000
+    style H fill:#7c3aed,stroke:#333,stroke-width:2px,color:#fff
 ```
 
 ### 📦 Monorepo Structure
