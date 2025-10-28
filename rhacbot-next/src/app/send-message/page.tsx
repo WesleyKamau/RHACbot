@@ -42,7 +42,7 @@ export default function SendMessagePage() {
   }, {} as Record<string, Building[]>);
 
   const regionNodes: TreeSelectNode[] = Object.entries(buildingsByRegion).map(([regionName, regionBuildings]) => ({
-    title: regionName,
+    title: `${regionName} Campus`,
     value: `region-${regionName}`,
     selectable: true,
     children: regionBuildings.map((building) => ({ 
@@ -52,9 +52,9 @@ export default function SendMessagePage() {
     })),
   }));
 
-  // Make "All Regions" the parent of all regions
+  // Make "Campuswide" the parent of all regions
   const treeData: TreeSelectNode[] = [{
-    title: 'All Regions',
+    title: 'Campuswide',
     value: 'region-all',
     selectable: true,
     children: regionNodes
@@ -82,18 +82,18 @@ export default function SendMessagePage() {
       }
     });
 
-    // Check if "All Regions" is selected
+    // Check if "Campuswide" is selected
     if (valueSet.has(allRegionValue)) {
       // If all regions selected, just return that
-      resultValues.push({ value: allRegionValue, label: 'All Regions' });
+      resultValues.push({ value: allRegionValue, label: 'Campuswide' });
       setSelectedValues(resultValues);
       return;
     }
 
-    // Check if all individual regions are selected (should auto-select "All Regions")
+    // Check if all individual regions are selected (should auto-select "Campuswide")
     const allRegionsSelected = allRegions.every((r) => valueSet.has(r));
     if (allRegionsSelected && allRegions.length > 0) {
-      resultValues.push({ value: allRegionValue, label: 'All Regions' });
+      resultValues.push({ value: allRegionValue, label: 'Campuswide' });
       setSelectedValues(resultValues);
       return;
     }
@@ -353,8 +353,8 @@ export default function SendMessagePage() {
               }}>
                 <Paragraph style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'rgba(0,0,0,0.75)' }}>
                   <strong>How targeting works:</strong><br />
-                  • Select "All Regions" to reach every connected floor chat<br />
-                  • Select specific regions (e.g., "North") to target all buildings in that area<br />
+                  • Select "Campuswide" to reach every connected floor chat across campus<br />
+                  • Select specific regions (e.g., "North Campus") to target all buildings in that area<br />
                   • Select individual buildings to reach only those residence halls<br />
                   • Mix and match regions and buildings for custom targeting
                 </Paragraph>

@@ -5,8 +5,8 @@
  * Ensures proper parent-child relationships and correct backend request formatting.
  * 
  * Hierarchy:
- * - All Regions (root)
- *   - Region (e.g., North, South, West)
+ * - Campuswide (root)
+ *   - Region Campus (e.g., North Campus, South Campus, West Campus)
  *     - Building (individual residence halls)
  */
 
@@ -32,7 +32,7 @@ function buildTreeData(buildings: typeof mockBuildings) {
   }, {});
 
   const regionNodes = Object.entries(buildingsByRegion).map(([regionName, regionBuildings]) => ({
-    title: regionName,
+    title: `${regionName} Campus`,
     value: `region-${regionName}`,
     selectable: true,
     children: regionBuildings.map((building) => ({ 
@@ -43,7 +43,7 @@ function buildTreeData(buildings: typeof mockBuildings) {
   }));
 
   return [{
-    title: 'All Regions',
+    title: 'Campuswide',
     value: 'region-all',
     selectable: true,
     children: regionNodes
@@ -71,13 +71,13 @@ function handleTreeSelectChange(newValue: any[], treeData: any[]) {
   });
 
   if (valueSet.has(allRegionValue)) {
-    resultValues.push({ value: allRegionValue, label: 'All Regions' });
+    resultValues.push({ value: allRegionValue, label: 'Campuswide' });
     return resultValues;
   }
 
   const allRegionsSelected = allRegions.every((r) => valueSet.has(r));
   if (allRegionsSelected && allRegions.length > 0) {
-    resultValues.push({ value: allRegionValue, label: 'All Regions' });
+    resultValues.push({ value: allRegionValue, label: 'Campuswide' });
     return resultValues;
   }
 
@@ -158,23 +158,23 @@ describe('Tree Select Logic - Hierarchy Structure', () => {
     treeData = buildTreeData(mockBuildings);
   });
 
-  it('should create a three-level hierarchy: All Regions > Regions > Buildings', () => {
+  it('should create a three-level hierarchy: Campuswide > Region Campus > Buildings', () => {
     expect(treeData).toHaveLength(1);
     expect(treeData[0].value).toBe('region-all');
-    expect(treeData[0].title).toBe('All Regions');
+    expect(treeData[0].title).toBe('Campuswide');
     expect(treeData[0].children).toHaveLength(3); // North, South, West
   });
 
-  it('should have correct region nodes as children of All Regions', () => {
+  it('should have correct region nodes as children of Campuswide', () => {
     const regions = treeData[0].children;
     const regionNames = regions.map((r: any) => r.title);
-    expect(regionNames).toContain('North');
-    expect(regionNames).toContain('South');
-    expect(regionNames).toContain('West');
+    expect(regionNames).toContain('North Campus');
+    expect(regionNames).toContain('South Campus');
+    expect(regionNames).toContain('West Campus');
   });
 
   it('should have buildings as children of each region', () => {
-    const northRegion = treeData[0].children.find((r: any) => r.title === 'North');
+    const northRegion = treeData[0].children.find((r: any) => r.title === 'North Campus');
     expect(northRegion.children).toHaveLength(2); // Building A, B
     expect(northRegion.children[0].title).toBe('Building A');
     expect(northRegion.children[0].value).toBe('1');
@@ -188,40 +188,40 @@ describe('Tree Select Logic - Parent Selection Behavior', () => {
     treeData = buildTreeData(mockBuildings);
   });
 
-  it('should select "All Regions" and return only that when "All Regions" is checked', () => {
-    const selection = [{ value: 'region-all', label: 'All Regions' }];
+  it('should select "Campuswide" and return only that when "Campuswide" is checked', () => {
+    const selection = [{ value: 'region-all', label: 'Campuswide' }];
     const result = handleTreeSelectChange(selection, treeData);
     
     expect(result).toHaveLength(1);
     expect(result[0].value).toBe('region-all');
   });
 
-  it('should auto-select "All Regions" when all individual regions are selected', () => {
+  it('should auto-select "Campuswide" when all individual regions are selected', () => {
     const selection = [
-      { value: 'region-North', label: 'North' },
-      { value: 'region-South', label: 'South' },
-      { value: 'region-West', label: 'West' }
+      { value: 'region-North', label: 'North Campus' },
+      { value: 'region-South', label: 'South Campus' },
+      { value: 'region-West', label: 'West Campus' }
     ];
     const result = handleTreeSelectChange(selection, treeData);
     
     expect(result).toHaveLength(1);
     expect(result[0].value).toBe('region-all');
-    expect(result[0].label).toBe('All Regions');
+    expect(result[0].label).toBe('Campuswide');
   });
 
   it('should select region when region checkbox is checked', () => {
-    const selection = [{ value: 'region-North', label: 'North' }];
+    const selection = [{ value: 'region-North', label: 'North Campus' }];
     const result = handleTreeSelectChange(selection, treeData);
     
     expect(result).toHaveLength(1);
     expect(result[0].value).toBe('region-North');
-    expect(result[0].label).toBe('North');
+    expect(result[0].label).toBe('North Campus');
   });
 
   it('should select all buildings in region when region is checked', () => {
     // When user clicks region, TreeSelect will include region + all buildings
     const selection = [
-      { value: 'region-North', label: 'North' },
+      { value: 'region-North', label: 'North Campus' },
       { value: '1', label: 'Building A' },
       { value: '2', label: 'Building B' }
     ];
@@ -261,7 +261,7 @@ describe('Tree Select Logic - Child Selection Behavior', () => {
     // Should collapse to the region
     expect(result).toHaveLength(1);
     expect(result[0].value).toBe('region-North');
-    expect(result[0].label).toBe('North');
+    expect(result[0].label).toBe('North Campus');
   });
 
   it('should deselect region when one building is deselected', () => {
@@ -343,8 +343,8 @@ describe('Backend Request Format - Region Selections', () => {
     treeData = buildTreeData(mockBuildings);
   });
 
-  it('should send "all" when "All Regions" is selected', () => {
-    const selection = [{ value: 'region-all', label: 'All Regions' }];
+  it('should send "all" when "Campuswide" is selected', () => {
+    const selection = [{ value: 'region-all', label: 'Campuswide' }];
     const result = handleTreeSelectChange(selection, treeData);
     const backendFormat = extractBackendFormat(result);
     
@@ -353,7 +353,7 @@ describe('Backend Request Format - Region Selections', () => {
   });
 
   it('should send region name when region is selected', () => {
-    const selection = [{ value: 'region-North', label: 'North' }];
+    const selection = [{ value: 'region-North', label: 'North Campus' }];
     const result = handleTreeSelectChange(selection, treeData);
     const backendFormat = extractBackendFormat(result);
     
