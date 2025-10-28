@@ -55,14 +55,19 @@ html, body, #__next {
 /* Mobile: ensure html/body don't create extra height */
 @media (max-width: 640px) {
   html, body, #__next {
-    height: auto !important;
-    min-height: 100vh;
-    overflow-y: visible !important;
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important; /* Prevent all scrolling on mobile */
+    position: fixed !important; /* Lock to viewport */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
   }
   
   body {
-    min-height: 100vh !important;
-    height: auto !important;
+    height: 100% !important;
+    overflow: hidden !important; /* No scrolling */
   }
 }
 
