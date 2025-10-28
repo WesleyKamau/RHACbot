@@ -197,6 +197,19 @@ export interface TreeSelectNode {
   children?: TreeSelectNode[];
 }
 
+/**
+ * TreeSelect value structure when labelInValue is true
+ */
+export interface TreeSelectValue {
+  value: string;
+  label: string;
+}
+
+/**
+ * TreeSelect onChange value type (can be object with label/value or plain string)
+ */
+export type TreeSelectChangeValue = TreeSelectValue | string;
+
 // ============================================================================
 // Type Guards
 // ============================================================================
