@@ -4,3 +4,8 @@ requests
 python-dotenv
 pymongo
 gunicorn
+
+# Testing dependencies (optional, for development)
+coverage>=7.0.0
+pytest>=7.4.0
+pytest-cov>=4.1.0

@@ -16,44 +16,29 @@ from api_types import (
     is_valid_building_id, validate_message_body, is_valid_region_target
 )
 
-import re
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
-
-# CORS origin validation function
-def is_allowed_origin(origin):
-    """Check if the origin is allowed to make CORS requests"""
-    allowed_patterns = [
-        r'^https://rhacbot\.wesleykamau\.com$',
-        r'^https://www\.rhacbot\.wesleykamau\.com$',
-        r'^https://rhacbot-.*\.vercel\.app$',  # Vercel preview deployments
-        r'^https://.*-wesley-kamaus-projects\.vercel\.app$',  # Vercel project URLs
-        r'^http://localhost:3000$',
-        r'^http://localhost:3001$'
-    ]
-    
-    if origin:
-        for pattern in allowed_patterns:
-            if re.match(pattern, origin):
-                return True
-    return False
-
-
 # Configure CORS at module level so it works with Gunicorn
 # Must be done BEFORE init_app() and BEFORE routes are defined
 CORS(app, 
-     resources={r"/api/*": {
-         "origins": is_allowed_origin,  # Use function for dynamic origin checking
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "allow_headers": ["Content-Type", "Authorization", "Accept"],
-         "supports_credentials": True,
-         "expose_headers": ["Content-Type"],
-         "max_age": 3600
-     }}
+     origins=[
+         "https://rhacbot.wesleykamau.com",
+         "https://www.rhacbot.wesleykamau.com",
+         "http://localhost:3000",
+         "http://localhost:3001",
+         # Allow all vercel.app preview deployments using regex pattern
+         r"https://.*\.vercel\.app$"
+     ],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization", "Accept"],
+     supports_credentials=True,
+     expose_headers=["Content-Type"],
+     max_age=3600,
+     send_wildcard=False,
+     always_send=True
 )
 
 # Module-level defaults so module can be imported without side-effects
@@ -66,11 +51,9 @@ _fallback_chats = []
 def init_app():
     """Perform application initialization that should only run in the main process.
 
-    This moves environment validation, config load, buildings file load,
+    This moves environment validation, config load, CORS, buildings file load,
     and MongoDB connection out of import-time execution so the module can be
     imported safely (for testing, linting, or use with WSGI servers).
-    
-    NOTE: This is called at module level below to ensure Gunicorn also runs it.
     """
     global buildings_data, chats_collection, _fallback_chats
 
@@ -280,12 +263,16 @@ def send_messages():
             if not is_valid_region_target(region):
                 return jsonify({'error': f'Invalid region: {region}'}), 400
         
-        if 'all' in regions:
+        # Normalize regions to lowercase for case-insensitive comparison
+        regions_lower = [r.lower() for r in regions]
+        
+        if 'all' in regions_lower:
             # Use all building IDs
             building_ids = [building['id'] for building in buildings_data]
         else:
-            # Get building IDs for the specified regions
-            building_ids = [building['id'] for building in buildings_data if building['region'] in regions]
+            # Get building IDs for the specified regions (case-insensitive)
+            building_ids = [building['id'] for building in buildings_data 
+                          if building['region'].lower() in regions_lower]
             if not building_ids:
                 return jsonify({'error': f'No buildings found in regions {regions}'}), 400
 
@@ -393,7 +380,12 @@ def get_buildings():
 @app.route('/api/auth', methods=['POST'])
 def auth():
     try:
-        data = request.get_json() or {}
+        # Try to get JSON data, fallback to empty dict if not JSON content-type
+        try:
+            data = request.get_json(silent=True) or {}
+        except Exception:
+            data = {}
+            
         auth_request = AuthRequest.from_dict(data)
         
         if not auth_request.password:
@@ -638,11 +630,6 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 
-# Initialize app at module level so Gunicorn can load config and data
-# This must happen AFTER routes are defined but will run when module is imported
-init_app()
-
-
 if __name__ == '__main__':
     # Configure debug mode via FLASK_DEBUG env var (truthy values enable debug)
     import os
@@ -656,8 +643,8 @@ if __name__ == '__main__':
     # Bind to 0.0.0.0 so the server is reachable from the host/container network (required by Render).
     host = os.getenv('FLASK_RUN_HOST', '0.0.0.0')
 
-    # Note: init_app() is already called at module level above
-    # No need to call it again here
+    # Initialize app resources that should only run in the main process
+    init_app()
 
     # Warning: Flask's built-in server is for development only.
     # For production, use: gunicorn app:app

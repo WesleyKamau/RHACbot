@@ -216,13 +216,17 @@ SendMessageResponse = Union[SendMessageSuccessResponse, SendMessagePartialRespon
 # ============================================================================
 
 def is_valid_region(region: str) -> bool:
-    """Check if a region string is valid"""
-    return region in [r.value for r in Region]
+    """Check if a region string is valid (case-insensitive)"""
+    if not isinstance(region, str):
+        return False
+    return region.lower() in [r.value.lower() for r in Region]
 
 
 def is_valid_region_target(region: str) -> bool:
-    """Check if a region target string is valid (includes 'all')"""
-    return region in [r.value for r in RegionTarget]
+    """Check if a region target string is valid (includes 'all', case-insensitive)"""
+    if not isinstance(region, str):
+        return False
+    return region.lower() in [r.value.lower() for r in RegionTarget]
 
 
 def is_valid_building_id(building_id: int) -> bool:
