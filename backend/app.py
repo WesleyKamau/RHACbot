@@ -49,9 +49,11 @@ _fallback_chats = []
 def init_app():
     """Perform application initialization that should only run in the main process.
 
-    This moves environment validation, config load, CORS, buildings file load,
+    This moves environment validation, config load, buildings file load,
     and MongoDB connection out of import-time execution so the module can be
     imported safely (for testing, linting, or use with WSGI servers).
+    
+    NOTE: This is called at module level below to ensure Gunicorn also runs it.
     """
     global buildings_data, chats_collection, _fallback_chats
 
@@ -619,6 +621,11 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 
+# Initialize app at module level so Gunicorn can load config and data
+# This must happen AFTER routes are defined but will run when module is imported
+init_app()
+
+
 if __name__ == '__main__':
     # Configure debug mode via FLASK_DEBUG env var (truthy values enable debug)
     import os
@@ -632,8 +639,8 @@ if __name__ == '__main__':
     # Bind to 0.0.0.0 so the server is reachable from the host/container network (required by Render).
     host = os.getenv('FLASK_RUN_HOST', '0.0.0.0')
 
-    # Initialize app resources that should only run in the main process
-    init_app()
+    # Note: init_app() is already called at module level above
+    # No need to call it again here
 
     # Warning: Flask's built-in server is for development only.
     # For production, use: gunicorn app:app
