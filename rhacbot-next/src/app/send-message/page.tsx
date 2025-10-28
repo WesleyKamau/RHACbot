@@ -236,7 +236,7 @@ export default function SendMessagePage() {
                       maxCount={1} 
                       showUploadList={false}
                     >
-                      {preview ? <img src={preview} alt="preview" style={{ width: '100%' }} /> : uploadButton}
+                      {preview ? <img src={preview} alt="Message image preview" style={{ width: '100%' }} /> : uploadButton}
                     </Upload>
                   </div>
                   {preview && (
@@ -249,6 +249,7 @@ export default function SendMessagePage() {
                 <Form.Item
                   label="Target Audience"
                   tooltip="Choose which residence halls will receive this message"
+                  name="targetAudience"
                   rules={[{ required: true, message: 'Please select at least one target' }]}
                 >
                   <TreeSelect 
