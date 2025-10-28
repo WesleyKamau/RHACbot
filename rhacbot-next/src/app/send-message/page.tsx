@@ -125,7 +125,7 @@ export default function SendMessagePage() {
 
     if (!authenticated) {
       return (
-        <div className="page-wrapper scrollable-page" style={{ 
+        <div className="page-wrapper" style={{ 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
