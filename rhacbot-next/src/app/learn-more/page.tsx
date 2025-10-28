@@ -7,17 +7,19 @@ const { Title, Paragraph } = Typography;
 export default function LearnMorePage() {
   return (
     <div 
-      className="page-wrapper"
+      className="page-wrapper scrollable-page"
       style={{ 
         zIndex: 100, 
         display: 'flex', 
         justifyContent: 'center', 
-        alignItems: 'center',
+        alignItems: 'flex-start',
         minHeight: '100vh',
         padding: '20px 0',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        overflowY: 'auto',
+        overflowX: 'hidden'
       }}>
-      <div className="card" style={{ maxWidth: '800px' }}>
+      <div className="card" style={{ maxWidth: '800px', margin: '20px auto' }}>
         <div className="card-inner">
           <img src={'/rhac-logo.png'} alt="RHAC Logo" className="logo" style={{ maxWidth: '120px', display: 'block', margin: '0 auto 20px' }} />
           

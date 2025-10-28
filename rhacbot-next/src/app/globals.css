@@ -212,6 +212,18 @@ body {
     display: block !important;
     height: auto !important;
   }
+  
+  /* Scrollable pages need full height for proper scrolling */
+  .scrollable-page {
+    min-height: 100% !important;
+    height: auto !important;
+    padding: 20px 0 !important;
+  }
+  
+  .scrollable-page .card {
+    padding: 16px !important;
+    margin: 0 !important;
+  }
 }
 
 .env-badge {
@@ -254,6 +266,14 @@ body {
   position: relative;
   overflow-x: hidden; /* Prevent horizontal scroll */
 }
+
+/* Allow scrolling for pages with scrollable content */
+.vanta-container:has(.scrollable-page),
+.non-stylish-container:has(.scrollable-page) {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .non-stylish-container {
   width: 100%;
   min-height: 100vh;
@@ -286,6 +306,14 @@ body {
     bottom: 0 !important;
   }
   
+  /* Allow scrolling for pages with long content */
+  .vanta-container:has(.scrollable-page),
+  .non-stylish-container:has(.scrollable-page) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: fixed !important;
+  }
+  
   /* Hide any Vanta canvas on mobile */
   .vanta-container canvas {
     display: none !important;
@@ -300,6 +328,14 @@ body {
     flex-shrink: 0 !important;
     max-height: 100% !important;
     overflow: visible !important;
+  }
+  
+  /* Scrollable pages need different treatment */
+  .vanta-container > div:has(.scrollable-page),
+  .non-stylish-container > div:has(.scrollable-page) {
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
   }
   
   /* Remove the grey background on mobile */
