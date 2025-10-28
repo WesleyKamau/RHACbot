@@ -9,6 +9,9 @@ export default function VantaLoader(): null {
     const stylishEnabled = ["1", "true", "yes", "on"].includes(stylishEnv);
 
     if (!stylishEnabled) return;
+    
+    // Disable Vanta on mobile screens (640px and below)
+    if (typeof window !== "undefined" && window.innerWidth <= 640) return;
 
     const loadVanta = () => {
       // Target the vanta root by id (vanta-root) so the loader is deterministic

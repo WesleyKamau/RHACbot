@@ -36,18 +36,32 @@ export default function AddChatPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh',
+      padding: '20px 0',
+      boxSizing: 'border-box'
+    }}>
         <div className="card">
           {contextHolder}
           <div className="card-inner">
-            <Title level={3} style={{ textAlign: 'center' }}>Add RHACbot to your GroupMe!</Title>
-            <div style={{ textAlign: 'center', marginBottom: 12 }}>
-              <Paragraph style={{ margin: 0, fontSize: 13 }}>
+            <Title level={3} style={{ textAlign: 'center', marginBottom: 8 }}>Add RHACbot to your GroupMe!</Title>
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <Paragraph style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>
                 Need help creating a GroupMe invite link? See the instructions: {' '}
-                <a href="https://support.microsoft.com/en-us/office/how-do-i-create-a-share-link-in-groupme-47ded1b7-e92d-4620-b3ff-b3d3740db761" target="_blank" rel="noopener noreferrer">How do I create a share link in GroupMe</a>
+                <a 
+                  href="https://support.microsoft.com/en-us/office/how-do-i-create-a-share-link-in-groupme-47ded1b7-e92d-4620-b3ff-b3d3740db761" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ wordBreak: 'break-word' }}
+                >
+                  How do I create a share link in GroupMe
+                </a>
               </Paragraph>
             </div>
-            <Form form={form} onFinish={handleSubmit} layout="vertical">
+            <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
               <Form.Item name="groupme_link" label="GroupMe Invite Link" rules={[{ required: true }]}>
                 <Input placeholder="GroupMe Invite Link" />
               </Form.Item>
