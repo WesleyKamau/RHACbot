@@ -46,8 +46,10 @@
 html, body, #__next {
   height: 100%;
   margin: 0;
+  padding: 0;
   overflow-x: hidden; /* Prevent horizontal scroll */
   width: 100%;
+  position: relative;
 }
 
 body {
@@ -55,9 +57,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
+  padding: 0;
   min-height: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent rubber-banding/overscroll on iOS */
+  overscroll-behavior-y: none;
+  /* Prevent pull-to-refresh gesture */
+  touch-action: pan-y;
 }
 
 /* Homepage styles migrated from the old React app */
@@ -121,11 +128,12 @@ body {
 }
 
 .card {
-  /* Mobile-first responsive card design */
-  width: 100%;
-  max-width: min(90vw, 600px); /* Cap at 600px on desktop, 90vw on mobile */
+  /* Desktop: reasonable width for forms */
+  width: 60vw; /* 60% of viewport width on desktop */
+  max-width: 900px; /* Cap at 900px for very large screens */
+  min-width: 400px; /* Minimum width to prevent too narrow */
   margin: 0 auto;
-  padding: clamp(16px, 4vw, 30px); /* Responsive padding */
+  padding: clamp(20px, 4vw, 30px);
   background-color: rgba(255,255,255,0.95);
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -135,18 +143,46 @@ body {
 /* Inner wrapper to keep form content consistent */
 .card-inner {
   width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-/* Mobile: full width with minimal margins */
+/* Override Ant Design form width constraints on desktop */
+@media (min-width: 641px) {
+  .card-inner .ant-form {
+    width: 100%;
+    max-width: none;
+  }
+  
+  /* Ensure all form items take full width */
+  .card-inner .ant-form-item {
+    width: 100%;
+    max-width: none;
+  }
+  
+  /* Ensure inputs, selects, and tree selects expand fully */
+  .card-inner .ant-input,
+  .card-inner .ant-input-password,
+  .card-inner .ant-select,
+  .card-inner .ant-tree-select,
+  .card-inner .ant-picker,
+  .card-inner textarea.ant-input {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+/* Mobile: Remove card styling, make it full-screen native-looking */
 @media (max-width: 640px) {
   .card {
-    width: calc(100% - 24px); /* 12px margin on each side */
+    width: 100%;
     max-width: none;
-    margin: 12px;
+    margin: 0;
     padding: 20px 16px;
-    border-radius: 12px;
+    background-color: transparent; /* Remove card background */
+    border-radius: 0; /* Remove rounded corners */
+    box-shadow: none; /* Remove shadow */
   }
 }
 
