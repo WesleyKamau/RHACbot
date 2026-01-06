@@ -21,10 +21,6 @@ export default function HomePage() {
       // eslint-disable-next-line no-console
       console.log('NEXT_PUBLIC_ENV=', process.env.NEXT_PUBLIC_ENV);
       // eslint-disable-next-line no-console
-      console.log('NEXT_PUBLIC_API_URL=', process.env.NEXT_PUBLIC_API_URL);
-      // eslint-disable-next-line no-console
-      console.log('NEXT_PUBLIC_API_PREFIX=', process.env.NEXT_PUBLIC_API_PREFIX);
-      // eslint-disable-next-line no-console
       console.log('NEXT_PUBLIC_STYLISH=', process.env.NEXT_PUBLIC_STYLISH);
     }
   }, []);
