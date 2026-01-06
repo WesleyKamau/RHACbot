@@ -79,7 +79,7 @@ export async function uploadImageToGroupMe(imageBuffer: Buffer, contentType: str
         'X-Access-Token': token,
         'Content-Type': contentType,
       },
-      body: imageBuffer,
+      body: imageBuffer as any,
     });
 
     if (!response.ok) {
