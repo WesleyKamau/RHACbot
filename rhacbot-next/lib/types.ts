@@ -238,14 +238,16 @@ export function hasMessageFailures(
  * Type guard to check if a region is valid
  */
 export function isValidRegion(region: string): region is Region {
-  return region === "North" || region === "South" || region === "West";
+  const lower = region.toLowerCase();
+  return lower === "north" || lower === "south" || lower === "west";
 }
 
 /**
  * Type guard to check if a region target is valid (includes "all")
  */
 export function isValidRegionTarget(region: string): region is RegionTarget {
-  return region === "all" || isValidRegion(region);
+  const lower = region.toLowerCase();
+  return lower === "all" || isValidRegion(region);
 }
 
 /**
@@ -253,4 +255,17 @@ export function isValidRegionTarget(region: string): region is RegionTarget {
  */
 export function isValidBuildingId(id: number): boolean {
   return Number.isInteger(id) && id >= 0 && id <= 40;
+}
+
+/**
+ * Validate message body
+ */
+export function validateMessageBody(body: string): string | null {
+  if (!body || !body.trim()) {
+    return 'message_body cannot be empty';
+  }
+  if (body.length > 1000) {
+    return 'message_body exceeds maximum length of 1000 characters';
+  }
+  return null;
 }

@@ -1,6 +1,11 @@
 # RHACbot API Documentation
 
-This repository uses [OpenAPI 3.0](https://swagger.io/specification/) specification to document the backend API.
+This document describes the Next.js API routes for RHACbot. The API is built using Next.js 16 Route Handlers and serves both the frontend and backend functionality.
+
+## API Base URL
+
+- **Development**: `http://localhost:3000/api`
+- **Production**: `https://your-vercel-app.vercel.app/api`
 
 ## Viewing the API Documentation
 
@@ -28,8 +33,10 @@ swagger-ui-serve openapi.yaml
 
 ## API Endpoints
 
+All endpoints are Next.js Route Handlers located in `rhacbot-next/src/app/api/`.
+
 ### Health Check
-- **GET** `/api/health` - Check if backend is running (useful for waking up sleeping services)
+- **GET** `/api/health` - Check application and database health status
 
 ### Chat Management
 - **POST** `/api/chats/add` - Register a floor's GroupMe chat with RHACbot
@@ -41,25 +48,33 @@ swagger-ui-serve openapi.yaml
 - **POST** `/api/auth` - Authenticate as executive board member
 
 ### Buildings
-- **GET** `/api/buildings` - Get list of all residence halls
+- **GET** `/api/buildings` - Get list of all residence halls with regions
 
 ## Environment Variables
 
-The API base URL is configured via environment variables:
+Environment variables are stored in the root `.env` file (not inside rhacbot-next).
 
-### Frontend (Next.js)
+### Required Variables
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-NEXT_PUBLIC_API_PREFIX=/api
-```
+# GroupMe API Configuration
+GROUPME_ACCESS_TOKEN=your_groupme_token_here
 
-### Backend (Flask)
-```env
-PORT=5000
-GROUPME_BOT_ID=your_bot_id
-GROUPME_API_TOKEN=your_api_token
-RHAC_PASSWORD=your_password
-MONGODB_URI=your_mongodb_uri
+# MongoDB Configuration
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
+MONGODB_DB=Cluster0
+MONGODB_DB_DEV=rhac_db_dev
+MONGODB_DB_PROD=rhac_db_prod
+
+# Authentication & Security
+ADMIN_PASSWORD=your_admin_password
+SECRET_KEY=your_secret_key_here
+
+# Environment Configuration
+ENV=dev
+
+# Next.js Public Variables
+NEXT_PUBLIC_ENV=dev
+NEXT_PUBLIC_STYLISH=true
 ```
 
 ## Testing the API
@@ -68,12 +83,24 @@ MONGODB_URI=your_mongodb_uri
 
 **Health check:**
 ```bash
-curl http://localhost:5000/api/health
+curl http://localhost:3000/api/health
+```
+
+**Get buildings:**
+```bash
+curl http://localhost:3000/api/buildings
+```
+
+**Authenticate:**
+```bash
+curl -X POST http://localhost:3000/api/auth \
+  -H "Content-Type: application/json" \
+  -d '{"password": "your_admin_password"}'
 ```
 
 **Add chat:**
 ```bash
-curl -X POST http://localhost:5000/api/chats/add \
+curl -X POST http://localhost:3000/api/chats/add \
   -H "Content-Type: application/json" \
   -d '{
     "groupme_link": "https://groupme.com/join_group/12345678/abcdefgh",
@@ -82,56 +109,73 @@ curl -X POST http://localhost:5000/api/chats/add \
   }'
 ```
 
-**Authenticate:**
-```bash
-curl -X POST http://localhost:5000/api/auth \
-  -H "Content-Type: application/json" \
-  -d '{"password": "your_password"}'
-```
-
 **Send message:**
 ```bash
-curl -X POST http://localhost:5000/api/messages/send \
-  -F "password=your_password" \
-  -F "message_body=Test message" \
-  -F "regions=North" \
-  -F "regions=South"
+curl -X POST http://localhost:3000/api/messages/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "password": "your_admin_password",
+    "message_body": "Test announcement",
+    "regions": ["North", "South"],
+    "building_ids": [],
+    "image_path": ""
+  }'
 ```
 
-### Using JavaScript/TypeScript
+### Using TypeScript/JavaScript
 
-The frontend uses helper functions defined in `rhacbot-next/lib/api.js`:
+The application uses internal API route handlers. Here's how to call them from the client:
 
-```javascript
-import { healthCheck, addChat, sendMessage, authenticate, getBuildings } from './lib/api';
-
+```typescript
 // Health check
-await healthCheck();
+const healthResponse = await fetch('/api/health');
+const health = await healthResponse.json();
 
-// Add chat
-await addChat({
-  groupme_link: 'https://groupme.com/join_group/...',
-  building_id: 1,
-  floor_number: 3
-});
+// Get buildings
+const buildingsResponse = await fetch('/api/buildings');
+const buildings = await buildingsResponse.json();
 
 // Authenticate
-await authenticate('password');
+const authResponse = await fetch('/api/auth', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ password: 'your_password' })
+});
+const auth = await authResponse.json();
+
+// Add chat
+const addChatResponse = await fetch('/api/chats/add', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    groupme_link: 'https://groupme.com/join_group/...',
+    building_id: 1,
+    floor_number: 3
+  })
+});
+const result = await addChatResponse.json();
 
 // Send message
-const formData = new FormData();
-formData.append('password', 'password');
-formData.append('message_body', 'Hello!');
-formData.append('regions', 'North');
-await sendMessage(formData);
+const sendResponse = await fetch('/api/messages/send', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    password: 'your_password',
+    message_body: 'Hello everyone!',
+    regions: ['all'],
+    building_ids: [],
+    image_path: ''
+  })
+});
+const sendResult = await sendResponse.json();
 ```
 
 ## Response Codes
 
 - **200** - Success
-- **207** - Multi-Status (some operations succeeded, some failed)
-- **400** - Bad Request (invalid data)
+- **400** - Bad Request (invalid data or validation error)
 - **401** - Unauthorized (authentication failed)
+- **404** - Not Found (resource doesn't exist)
 - **500** - Internal Server Error
 
 ## Data Models
@@ -141,41 +185,66 @@ await sendMessage(formData);
 {
   id: number;
   name: string;
-  region: "North" | "South" | "East" | "West" | "Central";
+  region: "North Campus" | "South Campus" | "West Campus" | "East Campus" | "Off Campus";
 }
 ```
 
-### Chat
+### Chat Registration
 ```typescript
 {
-  groupme_link: string;
-  building_id: number;
-  floor_number: number;
+  groupme_link: string;    // GroupMe join link
+  building_id: number;     // Building ID from buildings.json
+  floor_number: number;    // Floor number (1-20)
 }
 ```
 
-### Message Send Summary
+### Message Send Request
 ```typescript
 {
-  message: string;
-  summary: {
-    total: number;
-    sent: number;
-    failed: number;
-  };
-  failures?: Array<{
-    chat_id: string;
-    building: string;
-    floor: number;
-    error: string;
-  }>;
+  password: string;        // Admin password
+  message_body: string;    // Message text
+  regions: string[];       // ["all"] or ["North Campus", "South Campus", ...]
+  building_ids: number[];  // [] or [1, 5, 10, ...]
+  image_path?: string;     // Optional path to image file
 }
 ```
+
+### Health Check Response
+```typescript
+{
+  status: "healthy" | "unhealthy";
+  database: "connected" | "disconnected";
+  timestamp: string;       // ISO 8601 timestamp
+}
+```
+
+### Error Response
+```typescript
+{
+  error: string;           // Error message
+  details?: any;           // Optional additional error details
+}
+```
+
+## Architecture Notes
+
+- **Full-Stack Next.js**: All API routes are Next.js Route Handlers (no separate backend)
+- **TypeScript**: Complete type safety across the application
+- **MongoDB**: Used for persistent storage of chat registrations
+- **GroupMe API**: Direct integration for message sending and image uploads
+- **Environment-Based**: Separate dev/prod database and configuration
 
 ## Contributing
 
 When adding new endpoints:
-1. Update `openapi.yaml` with the new endpoint specification
-2. Implement the endpoint in `backend/app.py`
-3. Add corresponding function in `rhacbot-next/lib/api.js`
-4. Update this documentation
+1. Create route handler in `rhacbot-next/src/app/api/[endpoint]/route.ts`
+2. Add type definitions in `rhacbot-next/lib/types.ts`
+3. Add comprehensive tests in `rhacbot-next/__tests__/api/`
+4. Update `openapi.yaml` with the new endpoint specification
+5. Update this documentation
+
+All new API routes must:
+- Include proper error handling
+- Validate all inputs using type guards
+- Return consistent response format
+- Include comprehensive tests (aim for >80% coverage)

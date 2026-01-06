@@ -10,9 +10,8 @@ import type {
   AuthErrorResponse,
 } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
-const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || '/api';
-const API_URL = `${API_BASE}${API_PREFIX}`;
+// Use Next.js API routes (local to the application)
+const API_URL = '/api';
 
 /**
  * Health check endpoint to wake up the backend
@@ -22,8 +21,6 @@ export async function healthCheck(): Promise<ApiResponse<HealthCheckResponse>> {
   try {
     const res = await fetch(`${API_URL}/health`, {
       method: 'GET',
-      mode: 'cors',
-      credentials: 'include',
     });
     const data = await res.json().catch(() => ({ status: 'error', message: 'Failed to parse response' }));
     return { status: res.status, data };
@@ -38,9 +35,10 @@ export async function healthCheck(): Promise<ApiResponse<HealthCheckResponse>> {
  * @returns Promise with array of buildings
  */
 export async function getBuildings(): Promise<Building[]> {
-  const res = await fetch('/data/buildings.json');
+  const res = await fetch(`${API_URL}/buildings`);
   if (!res.ok) throw new Error('Failed to load buildings');
-  return res.json();
+  const data = await res.json();
+  return data.buildings || [];
 }
 
 /**
@@ -51,8 +49,6 @@ export async function getBuildings(): Promise<Building[]> {
 export async function addChat(payload: AddChatRequest): Promise<ApiResponse<AddChatResponse>> {
   const res = await fetch(`${API_URL}/chats/add`, {
     method: 'POST',
-    mode: 'cors',
-    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -68,8 +64,6 @@ export async function addChat(payload: AddChatRequest): Promise<ApiResponse<AddC
 export async function sendMessage(formData: FormData): Promise<ApiResponse<SendMessageResponse>> {
   const res = await fetch(`${API_URL}/messages/send`, {
     method: 'POST',
-    mode: 'cors',
-    credentials: 'include',
     body: formData,
   });
   const data = await res.json().catch(() => ({ error: 'Failed to parse response' }));
@@ -84,8 +78,6 @@ export async function sendMessage(formData: FormData): Promise<ApiResponse<SendM
 export async function authenticate(password: string): Promise<ApiResponse<AuthResponse | AuthErrorResponse>> {
   const res = await fetch(`${API_URL}/auth`, {
     method: 'POST',
-    mode: 'cors',
-    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password } as AuthRequest),
   });

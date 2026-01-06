@@ -1,9 +1,0 @@
-Flask
-Flask-Cors
-requests
-python-dotenv
-pymongo
-gunicorn
-
-# Testing dependencies (optional, for development)
-coverage>=7.0.0
